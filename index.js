@@ -1640,20 +1640,15 @@ app.post(
             // КОЛОНТИТУЛ
             // =================================================
 
-            sheet.headerFooter.oddHeader.center.text =
-                `Отчёт по водителям: ${from} — ${to}`;
+            // =================================================
+// КОЛОНТИТУЛ
+// =================================================
 
+sheet.headerFooter.oddHeader =
+    `&CОтчёт по водителям: ${from} — ${to}`;
 
-            sheet.headerFooter.oddHeader.center.size =
-                8;
-
-
-            sheet.headerFooter.oddFooter.center.text =
-                'Страница &P из &N';
-
-
-            sheet.headerFooter.oddFooter.center.size =
-                8;
+sheet.headerFooter.oddFooter =
+    `&CСтраница &P из &N`;
 
 
             // =================================================
