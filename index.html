@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Отчёт по водителям
+    </title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            background: #f5f7fb;
+
+            color: #20242c;
+
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
+        }
+
+
+        .container {
+
+            max-width: 1450px;
+
+            margin: 0 auto;
+
+            padding: 35px 20px 50px;
+
+        }
+
+
+        h1 {
+
+            margin:
+                0 0 25px;
+
+            font-size: 30px;
+
+        }
+
+
+        .card {
+
+            background: white;
+
+            border-radius: 16px;
+
+            padding: 25px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 4px 20px
+                rgba(0,0,0,.06);
+
+        }
+
+
+        .filters {
+
+            display: flex;
+
+            align-items: end;
+
+            gap: 15px;
+
+            flex-wrap: wrap;
+
+        }
+
+
+        .field {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 7px;
+
+        }
+
+
+        label {
+
+            font-size: 13px;
+
+            color: #6b7280;
+
+            font-weight: 600;
+
+        }
+
+
+        input[type="date"] {
+
+            height: 44px;
+
+            padding:
+                0 12px;
+
+            border:
+                1px solid #d8dce5;
+
+            border-radius: 9px;
+
+            background: white;
+
+            font-size: 15px;
+
+            color: #20242c;
+
+        }
+
+
+        button {
+
+            height: 44px;
+
+            padding:
+                0 22px;
+
+            border: 0;
+
+            border-radius: 9px;
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+        }
+
+
+        #loadBtn {
+
+            background: #2563eb;
+
+            color: white;
+
+        }
+
+
+        #loadBtn:hover {
+
+            background: #1d4ed8;
+
+        }
+
+
+        #excelBtn {
+
+            background: #16a34a;
+
+            color: white;
+
+            display: none;
+
+        }
+
+
+        #excelBtn:hover {
+
+            background: #15803d;
+
+        }
+
+
+        button:disabled {
+
+            opacity: .6;
+
+            cursor: wait;
+
+        }
+
+
+        .status {
+
+            margin-top: 18px;
+
+            font-size: 14px;
+
+            color: #6b7280;
+
+        }
+
+
+        .summary {
+
+            display: none;
+
+            gap: 15px;
+
+            margin-top: 20px;
+
+        }
+
+
+        .summary-item {
+
+            padding:
+                14px 20px;
+
+            background: #f5f7fb;
+
+            border-radius: 10px;
+
+        }
+
+
+        .summary-title {
+
+            color: #6b7280;
+
+            font-size: 13px;
+
+        }
+
+
+        .summary-value {
+
+            margin-top: 4px;
+
+            font-size: 24px;
+
+            font-weight: 700;
+
+        }
+
+
+        .table-wrap {
+
+            overflow-x: auto;
+
+        }
+
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            font-size: 14px;
+
+        }
+
+
+        th {
+
+            padding: 13px;
+
+            background: #f3f4f6;
+
+            text-align: left;
+
+            white-space: nowrap;
+
+        }
+
+
+        td {
+
+            padding: 12px 13px;
+
+            border-top:
+                1px solid #edf0f4;
+
+            vertical-align: top;
+
+        }
+
+
+        tbody tr:hover td {
+
+            background: #fafafa;
+
+        }
+
+
+        .positive {
+
+            color: #15803d;
+
+            font-weight: 600;
+
+        }
+
+
+        .negative {
+
+            color: #dc2626;
+
+            font-weight: 600;
+
+        }
+
+
+        .empty {
+
+            text-align: center;
+
+            padding: 50px;
+
+            color: #9ca3af;
+
+        }
+
+
+        .loader {
+
+            display: inline-block;
+
+            width: 15px;
+
+            height: 15px;
+
+            margin-right: 7px;
+
+            border:
+                2px solid
+                rgba(255,255,255,.4);
+
+            border-top-color: white;
+
+            border-radius: 50%;
+
+            animation:
+                spin .7s linear infinite;
+
+            vertical-align: -2px;
+
+        }
+
+
+        @keyframes spin {
+
+            to {
+                transform: rotate(360deg);
+            }
+
+        }
+
+
+        @media (max-width: 700px) {
+
+            .container {
+                padding:
+                    20px 12px;
+            }
+
+
+            .filters {
+
+                flex-direction: column;
+
+                align-items: stretch;
+
+            }
+
+
+            .field,
+            input,
+            button {
+
+                width: 100%;
+
+            }
+
+
+            .summary {
+
+                flex-direction: column;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <h1>
+        Отчёт по водителям
+    </h1>
+
+
+    <!-- ========================================= -->
+    <!-- ФИЛЬТР -->
+    <!-- ========================================= -->
+
+    <div class="card">
+
+
+        <div class="filters">
+
+
+            <div class="field">
+
+                <label>
+                    Дата начала
+                </label>
+
+                <input
+                    type="date"
+                    id="from"
+                >
+
+            </div>
+
+
+            <div class="field">
+
+                <label>
+                    Дата окончания
+                </label>
+
+                <input
+                    type="date"
+                    id="to"
+                >
+
+            </div>
+
+
+            <button
+                id="loadBtn"
+                onclick="loadReport()"
+            >
+                Получить отчёт
+            </button>
+
+
+            <button
+                id="excelBtn"
+                onclick="downloadExcel()"
+            >
+                Скачать Excel
+            </button>
+
+
+        </div>
+
+
+        <div
+            class="status"
+            id="status"
+        ></div>
+
+
+        <div
+            class="summary"
+            id="summary"
+        >
+
+            <div class="summary-item">
+
+                <div class="summary-title">
+                    Строк отчёта
+                </div>
+
+                <div
+                    class="summary-value"
+                    id="count"
+                >
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- ТАБЛИЦА -->
+    <!-- ========================================= -->
+
+    <div class="card">
+
+
+        <div class="table-wrap">
+
+
+            <table>
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Дата
+                        </th>
+
+                        <th>
+                            Контрагент
+                        </th>
+
+                        <th>
+                            Водитель
+                        </th>
+
+                        <th>
+                            Счёт
+                        </th>
+
+                        <th>
+                            Сумма счета
+                        </th>
+
+                        <th>
+                            Сумма отгрузок
+                        </th>
+
+                        <th>
+                            Разница
+                        </th>
+
+                        <th>
+                            Отгрузки
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tableBody">
+
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            class="empty"
+                        >
+
+                            Выберите период и нажмите
+                            «Получить отчёт»
+
+                        </td>
+
+                    </tr>
+
+
+                </tbody>
+
+
+            </table>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+
+// ============================================================
+// Элементы
+// ============================================================
+
+const fromInput =
+    document.getElementById('from');
+
+const toInput =
+    document.getElementById('to');
+
+const loadBtn =
+    document.getElementById('loadBtn');
+
+const excelBtn =
+    document.getElementById('excelBtn');
+
+const status =
+    document.getElementById('status');
+
+const summary =
+    document.getElementById('summary');
+
+const count =
+    document.getElementById('count');
+
+const tableBody =
+    document.getElementById('tableBody');
+
+
+// ============================================================
+// Дата сегодня
+// ============================================================
+
+const today =
+    new Date();
+
+
+const todayString =
+    today.toISOString()
+        .substring(0, 10);
+
+
+// ============================================================
+// Первый день текущего месяца
+// ============================================================
+
+const firstDay =
+    new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1
+    );
+
+
+const firstDayString =
+    firstDay
+        .toISOString()
+        .substring(0, 10);
+
+
+// ============================================================
+// Значения по умолчанию
+// ============================================================
+
+fromInput.value =
+    firstDayString;
+
+toInput.value =
+    todayString;
+
+
+// ============================================================
+// ПОЛУЧИТЬ ОТЧЁТ
+// ============================================================
+
+async function loadReport() {
+
+
+    const from =
+        fromInput.value;
+
+    const to =
+        toInput.value;
+
+
+    if (!from || !to) {
+
+        alert(
+            'Выберите период'
+        );
+
+        return;
+    }
+
+
+    if (from > to) {
+
+        alert(
+            'Дата начала не может быть позже даты окончания'
+        );
+
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // UI
+    // --------------------------------------------------------
+
+    loadBtn.disabled =
+        true;
+
+    excelBtn.style.display =
+        'none';
+
+    summary.style.display =
+        'none';
+
+
+    loadBtn.innerHTML =
+        '<span class="loader"></span>Загрузка...';
+
+
+    status.textContent =
+        'Получаем данные из МойСклад...';
+
+
+    tableBody.innerHTML = `
+
+        <tr>
+
+            <td
+                colspan="8"
+                class="empty"
+            >
+                Загрузка...
+            </td>
+
+        </tr>
+
+    `;
+
+
+    try {
+
+
+        const url =
+            `/api/driver-report?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+
+
+        const response =
+            await fetch(url);
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.error ||
+                'Ошибка получения отчёта'
+            );
+
+        }
+
+
+        // ----------------------------------------------------
+        // Таблица
+        // ----------------------------------------------------
+
+        renderReport(
+            data.rows || []
+        );
+
+
+        // ----------------------------------------------------
+        // Количество
+        // ----------------------------------------------------
+
+        count.textContent =
+            data.count || 0;
+
+
+        summary.style.display =
+            'flex';
+
+
+        // ----------------------------------------------------
+        // Excel
+        // ----------------------------------------------------
+
+        excelBtn.style.display =
+            'inline-block';
+
+
+        status.textContent =
+            `Период: ${formatDate(from)} — ${formatDate(to)}`;
+
+
+    } catch (error) {
+
+
+        console.error(error);
+
+
+        tableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="empty"
+                >
+
+                    Ошибка:
+                    ${escapeHtml(error.message)}
+
+                </td>
+
+            </tr>
+
+        `;
+
+
+        status.textContent =
+            'Ошибка получения данных';
+
+
+    } finally {
+
+
+        loadBtn.disabled =
+            false;
+
+
+        loadBtn.textContent =
+            'Получить отчёт';
+
+    }
+
+}
+
+
+// ============================================================
+// ТАБЛИЦА
+// ============================================================
+
+function renderReport(rows) {
+
+
+    if (!rows.length) {
+
+        tableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="empty"
+                >
+                    За выбранный период данных нет
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+    }
+
+
+    tableBody.innerHTML =
+
+        rows.map(row => {
+
+
+            const difference =
+                Number(
+                    row.difference || 0
+                );
+
+
+            let differenceClass =
+                '';
+
+
+            if (difference > 0) {
+
+                differenceClass =
+                    'positive';
+
+            } else if (difference < 0) {
+
+                differenceClass =
+                    'negative';
+
+            }
+
+
+            // --------------------------------------------
+            // Отгрузки
+            // --------------------------------------------
+
+            const demands =
+                (row.demands || [])
+                    .map(d => {
+
+                        return `
+
+                            <div>
+
+                                ${escapeHtml(d.number)}
+
+                                —
+
+                                ${formatMoney(d.sum)}
+
+                            </div>
+
+                        `;
+
+                    })
+                    .join('');
+
+
+            return `
+
+                <tr>
+
+                    <td>
+                        ${formatDate(row.date)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(row.counterparty)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(row.driver)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(row.invoice)}
+                    </td>
+
+                    <td>
+                        ${formatMoney(row.invoiceSum)}
+                    </td>
+
+                    <td>
+                        ${formatMoney(row.shipmentSum)}
+                    </td>
+
+                    <td
+                        class="${differenceClass}"
+                    >
+                        ${formatMoney(difference)}
+                    </td>
+
+                    <td>
+                        ${demands}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }).join('');
+
+}
+
+
+// ============================================================
+// СКАЧАТЬ EXCEL
+// ============================================================
+
+function downloadExcel() {
+
+
+    const from =
+        fromInput.value;
+
+    const to =
+        toInput.value;
+
+
+    const url =
+        `/api/driver-report.xlsx?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+
+
+    window.location.href =
+        url;
+
+}
+
+
+// ============================================================
+// ДЕНЬГИ
+// ============================================================
+
+function formatMoney(value) {
+
+    return Number(value || 0)
+        .toLocaleString(
+            'ru-RU',
+            {
+                minimumFractionDigits: 2,
+
+                maximumFractionDigits: 2
+            }
+        ) + ' ₽';
+
+}
+
+
+// ============================================================
+// ДАТА
+// ============================================================
+
+function formatDate(value) {
+
+    if (!value) {
+        return '';
+    }
+
+
+    const parts =
+        value.split('-');
+
+
+    if (parts.length !== 3) {
+        return value;
+    }
+
+
+    return `
+        ${parts[2]}.
+        ${parts[1]}.
+        ${parts[0]}
+    `.replace(/\s/g, '');
+
+}
+
+
+// ============================================================
+// HTML ESCAPE
+// ============================================================
+
+function escapeHtml(value) {
+
+    return String(value ?? '')
+        .replace(
+            /&/g,
+            '&amp;'
+        )
+        .replace(
+            /</g,
+            '&lt;'
+        )
+        .replace(
+            />/g,
+            '&gt;'
+        )
+        .replace(
+            /"/g,
+            '&quot;'
+        )
+        .replace(
+            /'/g,
+            '&#039;'
+        );
+
+}
+
+</script>
+
+
+</body>
+
+</html>
