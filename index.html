@@ -1,5 +1,5 @@
+```html
 <!DOCTYPE html>
-
 <html lang="ru">
 
 <head>
@@ -11,9 +11,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Отчёт по водителям
-    </title>
+    <title>Отчёт по водителям</title>
 
 
     <style>
@@ -150,7 +148,8 @@
 
             outline: none;
 
-            border-color: #2563eb;
+            border-color:
+                #2563eb;
 
         }
 
@@ -185,7 +184,8 @@
 
         #loadBtn {
 
-            background: #2563eb;
+            background:
+                #2563eb;
 
             color: white;
 
@@ -194,7 +194,8 @@
 
         #loadBtn:hover {
 
-            background: #1d4ed8;
+            background:
+                #1d4ed8;
 
         }
 
@@ -203,7 +204,8 @@
 
             display: none;
 
-            background: #16a34a;
+            background:
+                #16a34a;
 
             color: white;
 
@@ -212,34 +214,41 @@
 
         #excelBtn:hover {
 
-            background: #15803d;
+            background:
+                #15803d;
 
         }
 
 
         #resetBtn {
 
-            background: #eef0f4;
+            background:
+                #eef0f4;
 
-            color: #374151;
+            color:
+                #374151;
 
-            display: none;
+            display:
+                none;
 
         }
 
 
         #resetBtn:hover {
 
-            background: #e2e5ea;
+            background:
+                #e2e5ea;
 
         }
 
 
         button:disabled {
 
-            opacity: .6;
+            opacity:
+                .6;
 
-            cursor: wait;
+            cursor:
+                wait;
 
         }
 
@@ -250,11 +259,14 @@
 
         .status {
 
-            margin-top: 18px;
+            margin-top:
+                18px;
 
-            font-size: 14px;
+            font-size:
+                14px;
 
-            color: #6b7280;
+            color:
+                #6b7280;
 
         }
 
@@ -267,51 +279,62 @@
 
             display: none;
 
-            gap: 15px;
+            gap:
+                15px;
 
-            margin-top: 20px;
+            margin-top:
+                20px;
 
-            flex-wrap: wrap;
+            flex-wrap:
+                wrap;
 
         }
 
 
         .summary-item {
 
-            min-width: 180px;
+            min-width:
+                180px;
 
             padding:
                 15px 20px;
 
-            background: #f5f7fb;
+            background:
+                #f5f7fb;
 
-            border-radius: 10px;
+            border-radius:
+                10px;
 
         }
 
 
         .summary-title {
 
-            color: #6b7280;
+            color:
+                #6b7280;
 
-            font-size: 13px;
+            font-size:
+                13px;
 
         }
 
 
         .summary-value {
 
-            margin-top: 5px;
+            margin-top:
+                5px;
 
-            font-size: 22px;
+            font-size:
+                22px;
 
-            font-weight: 700;
+            font-weight:
+                700;
 
         }
 
 
         /* ====================================================
-           БЛОК ФИЛЬТРОВ ПО ДАННЫМ
+           ФИЛЬТРЫ ПО ДАННЫМ
            ==================================================== */
 
         .data-filters {
@@ -319,13 +342,22 @@
             display: none;
 
             grid-template-columns:
-                repeat(2, minmax(200px, 1fr));
+                repeat(
+                    3,
+                    minmax(
+                        200px,
+                        1fr
+                    )
+                );
 
-            gap: 15px;
+            gap:
+                15px;
 
-            margin-top: 25px;
+            margin-top:
+                25px;
 
-            padding-top: 25px;
+            padding-top:
+                25px;
 
             border-top:
                 1px solid #edf0f4;
@@ -338,11 +370,14 @@
             grid-column:
                 1 / -1;
 
-            font-size: 16px;
+            font-size:
+                16px;
 
-            font-weight: 700;
+            font-weight:
+                700;
 
-            margin-bottom: 2px;
+            margin-bottom:
+                2px;
 
         }
 
@@ -353,20 +388,25 @@
 
         .table-wrap {
 
-            overflow-x: auto;
+            overflow-x:
+                auto;
 
         }
 
 
         table {
 
-            width: 100%;
+            width:
+                100%;
 
-            border-collapse: collapse;
+            border-collapse:
+                collapse;
 
-            font-size: 14px;
+            font-size:
+                14px;
 
-            min-width: 1100px;
+            min-width:
+                1250px;
 
         }
 
@@ -376,13 +416,17 @@
             padding:
                 13px;
 
-            background: #f3f4f6;
+            background:
+                #f3f4f6;
 
-            text-align: left;
+            text-align:
+                left;
 
-            white-space: nowrap;
+            white-space:
+                nowrap;
 
-            font-weight: 600;
+            font-weight:
+                600;
 
         }
 
@@ -395,14 +439,46 @@
             border-top:
                 1px solid #edf0f4;
 
-            vertical-align: top;
+            vertical-align:
+                top;
 
         }
 
 
         tbody tr:hover td {
 
-            background: #fafafa;
+            background:
+                #fafafa;
+
+        }
+
+
+        /* ====================================================
+           СТАТУС СЧЁТА
+           ==================================================== */
+
+        .invoice-status {
+
+            display:
+                inline-block;
+
+            padding:
+                5px 9px;
+
+            border-radius:
+                7px;
+
+            background:
+                #eef2ff;
+
+            color:
+                #374151;
+
+            font-size:
+                13px;
+
+            white-space:
+                nowrap;
 
         }
 
@@ -419,47 +495,58 @@
             border-top:
                 2px solid #cfd4dc;
 
-            background: #f3f4f6;
+            background:
+                #f3f4f6;
 
-            font-weight: 700;
+            font-weight:
+                700;
 
-            white-space: nowrap;
+            white-space:
+                nowrap;
 
         }
 
 
         .total-label {
 
-            font-size: 15px;
+            font-size:
+                15px;
 
         }
 
 
         .positive {
 
-            color: #15803d;
+            color:
+                #15803d;
 
-            font-weight: 600;
+            font-weight:
+                600;
 
         }
 
 
         .negative {
 
-            color: #dc2626;
+            color:
+                #dc2626;
 
-            font-weight: 600;
+            font-weight:
+                600;
 
         }
 
 
         .empty {
 
-            text-align: center;
+            text-align:
+                center;
 
-            padding: 50px;
+            padding:
+                50px;
 
-            color: #9ca3af;
+            color:
+                #9ca3af;
 
         }
 
@@ -470,26 +557,38 @@
 
         .loader {
 
-            display: inline-block;
+            display:
+                inline-block;
 
-            width: 15px;
+            width:
+                15px;
 
-            height: 15px;
+            height:
+                15px;
 
-            margin-right: 7px;
+            margin-right:
+                7px;
 
             border:
                 2px solid
-                rgba(255, 255, 255, .4);
+                rgba(
+                    255,
+                    255,
+                    255,
+                    .4
+                );
 
-            border-top-color: white;
+            border-top-color:
+                white;
 
-            border-radius: 50%;
+            border-radius:
+                50%;
 
             animation:
                 spin .7s linear infinite;
 
-            vertical-align: -2px;
+            vertical-align:
+                -2px;
 
         }
 
@@ -510,7 +609,23 @@
            МОБИЛЬНАЯ ВЕРСИЯ
            ==================================================== */
 
-        @media (max-width: 700px) {
+        @media (
+            max-width: 900px
+        ) {
+
+            .data-filters {
+
+                grid-template-columns:
+                    1fr 1fr;
+
+            }
+
+        }
+
+
+        @media (
+            max-width: 700px
+        ) {
 
             .container {
 
@@ -522,9 +637,11 @@
 
             .filters {
 
-                flex-direction: column;
+                flex-direction:
+                    column;
 
-                align-items: stretch;
+                align-items:
+                    stretch;
 
             }
 
@@ -534,28 +651,32 @@
             select,
             button {
 
-                width: 100%;
+                width:
+                    100%;
 
             }
 
 
             .data-filters {
 
-                grid-template-columns: 1fr;
+                grid-template-columns:
+                    1fr;
 
             }
 
 
             .summary {
 
-                flex-direction: column;
+                flex-direction:
+                    column;
 
             }
 
 
             .summary-item {
 
-                width: 100%;
+                width:
+                    100%;
 
             }
 
@@ -572,17 +693,13 @@
 <div class="container">
 
 
-    <!-- ====================================================
-         ЗАГОЛОВОК
-         ==================================================== -->
-
     <h1>
         Отчёт по водителям
     </h1>
 
 
     <!-- ====================================================
-         ОСНОВНОЙ ФИЛЬТР ПЕРИОДА
+         ПЕРИОД
          ==================================================== -->
 
     <div class="card">
@@ -590,8 +707,6 @@
 
         <div class="filters">
 
-
-            <!-- Дата начала -->
 
             <div class="field">
 
@@ -607,8 +722,6 @@
             </div>
 
 
-            <!-- Дата окончания -->
-
             <div class="field">
 
                 <label>
@@ -623,8 +736,6 @@
             </div>
 
 
-            <!-- Получить -->
-
             <button
                 id="loadBtn"
                 onclick="loadReport()"
@@ -635,8 +746,6 @@
             </button>
 
 
-            <!-- Excel -->
-
             <button
                 id="excelBtn"
                 onclick="downloadExcel()"
@@ -646,8 +755,6 @@
 
             </button>
 
-
-            <!-- Сбросить фильтры -->
 
             <button
                 id="resetBtn"
@@ -663,7 +770,7 @@
 
 
         <!-- =================================================
-             ФИЛЬТРЫ КОНТРАГЕНТ / ВОДИТЕЛЬ
+             ФИЛЬТРЫ
              ================================================= -->
 
         <div
@@ -723,11 +830,33 @@
             </div>
 
 
+            <!-- Статус счета -->
+
+            <div class="field">
+
+                <label>
+                    Статус счета поставщика
+                </label>
+
+                <select
+                    id="statusFilter"
+                    onchange="applyFilters()"
+                >
+
+                    <option value="">
+                        Все статусы
+                    </option>
+
+                </select>
+
+            </div>
+
+
         </div>
 
 
         <!-- =================================================
-             СТАТУС
+             СТАТУС ЗАГРУЗКИ
              ================================================= -->
 
         <div
@@ -737,7 +866,7 @@
 
 
         <!-- =================================================
-             ИТОГОВЫЕ ПОКАЗАТЕЛИ
+             ИТОГИ
              ================================================= -->
 
         <div
@@ -749,18 +878,14 @@
             <div class="summary-item">
 
                 <div class="summary-title">
-
                     Строк
-
                 </div>
 
                 <div
                     class="summary-value"
                     id="count"
                 >
-
                     0
-
                 </div>
 
             </div>
@@ -769,18 +894,14 @@
             <div class="summary-item">
 
                 <div class="summary-title">
-
                     Сумма счета
-
                 </div>
 
                 <div
                     class="summary-value"
                     id="totalInvoice"
                 >
-
                     0,00 ₽
-
                 </div>
 
             </div>
@@ -789,18 +910,14 @@
             <div class="summary-item">
 
                 <div class="summary-title">
-
                     Сумма отгрузок
-
                 </div>
 
                 <div
                     class="summary-value"
                     id="totalShipment"
                 >
-
                     0,00 ₽
-
                 </div>
 
             </div>
@@ -809,18 +926,30 @@
             <div class="summary-item">
 
                 <div class="summary-title">
+                    20%
+                </div>
 
+                <div
+                    class="summary-value"
+                    id="totalTwenty"
+                >
+                    0,00 ₽
+                </div>
+
+            </div>
+
+
+            <div class="summary-item">
+
+                <div class="summary-title">
                     Разница
-
                 </div>
 
                 <div
                     class="summary-value"
                     id="totalDifference"
                 >
-
                     0,00 ₽
-
                 </div>
 
             </div>
@@ -866,11 +995,19 @@
                         </th>
 
                         <th>
+                            Статус счета поставщика
+                        </th>
+
+                        <th>
                             Сумма счета
                         </th>
 
                         <th>
                             Сумма отгрузок
+                        </th>
+
+                        <th>
+                            20%
                         </th>
 
                         <th>
@@ -890,11 +1027,10 @@
                     id="tableBody"
                 >
 
-
                     <tr>
 
                         <td
-                            colspan="8"
+                            colspan="10"
                             class="empty"
                         >
 
@@ -904,7 +1040,6 @@
                         </td>
 
                     </tr>
-
 
                 </tbody>
 
@@ -921,7 +1056,7 @@
                     <tr>
 
                         <td
-                            colspan="4"
+                            colspan="5"
                             class="total-label"
                         >
 
@@ -941,6 +1076,15 @@
 
                         <td
                             id="footerShipment"
+                        >
+
+                            0,00 ₽
+
+                        </td>
+
+
+                        <td
+                            id="footerTwenty"
                         >
 
                             0,00 ₽
@@ -985,11 +1129,8 @@
 // ДАННЫЕ
 // ============================================================
 
-// Полный отчёт, полученный от сервера
 let currentReport = [];
 
-
-// Отфильтрованный отчёт
 let filteredReport = [];
 
 
@@ -998,60 +1139,124 @@ let filteredReport = [];
 // ============================================================
 
 const fromInput =
-    document.getElementById('from');
+    document.getElementById(
+        'from'
+    );
+
 
 const toInput =
-    document.getElementById('to');
+    document.getElementById(
+        'to'
+    );
+
 
 const loadBtn =
-    document.getElementById('loadBtn');
+    document.getElementById(
+        'loadBtn'
+    );
+
 
 const excelBtn =
-    document.getElementById('excelBtn');
+    document.getElementById(
+        'excelBtn'
+    );
+
 
 const resetBtn =
-    document.getElementById('resetBtn');
+    document.getElementById(
+        'resetBtn'
+    );
+
 
 const status =
-    document.getElementById('status');
+    document.getElementById(
+        'status'
+    );
+
 
 const summary =
-    document.getElementById('summary');
+    document.getElementById(
+        'summary'
+    );
+
 
 const count =
-    document.getElementById('count');
+    document.getElementById(
+        'count'
+    );
+
 
 const totalInvoice =
-    document.getElementById('totalInvoice');
+    document.getElementById(
+        'totalInvoice'
+    );
+
 
 const totalShipment =
-    document.getElementById('totalShipment');
+    document.getElementById(
+        'totalShipment'
+    );
+
+
+const totalTwenty =
+    document.getElementById(
+        'totalTwenty'
+    );
+
 
 const totalDifference =
-    document.getElementById('totalDifference');
+    document.getElementById(
+        'totalDifference'
+    );
+
 
 const tableBody =
-    document.getElementById('tableBody');
+    document.getElementById(
+        'tableBody'
+    );
+
 
 const tableFooter =
-    document.getElementById('tableFooter');
+    document.getElementById(
+        'tableFooter'
+    );
+
 
 const footerInvoice =
-    document.getElementById('footerInvoice');
+    document.getElementById(
+        'footerInvoice'
+    );
+
 
 const footerShipment =
-    document.getElementById('footerShipment');
+    document.getElementById(
+        'footerShipment'
+    );
+
+
+const footerTwenty =
+    document.getElementById(
+        'footerTwenty'
+    );
+
 
 const footerDifference =
-    document.getElementById('footerDifference');
+    document.getElementById(
+        'footerDifference'
+    );
+
 
 const dataFilters =
-    document.getElementById('dataFilters');
+    document.getElementById(
+        'dataFilters'
+    );
+
 
 const counterpartyFilter =
     document.getElementById(
         'counterpartyFilter'
     );
+
 
 const driverFilter =
     document.getElementById(
@@ -1059,8 +1264,14 @@ const driverFilter =
     );
 
 
+const statusFilter =
+    document.getElementById(
+        'statusFilter'
+    );
+
+
 // ============================================================
-// ДАТА СЕГОДНЯ
+// ДАТЫ ПО УМОЛЧАНИЮ
 // ============================================================
 
 const today =
@@ -1068,13 +1279,13 @@ const today =
 
 
 const todayString =
-    today.toISOString()
-        .substring(0, 10);
+    today
+        .toISOString()
+        .substring(
+            0,
+            10
+        );
 
-
-// ============================================================
-// ПЕРВЫЙ ДЕНЬ ТЕКУЩЕГО МЕСЯЦА
-// ============================================================
 
 const firstDay =
     new Date(
@@ -1087,15 +1298,15 @@ const firstDay =
 const firstDayString =
     firstDay
         .toISOString()
-        .substring(0, 10);
+        .substring(
+            0,
+            10
+        );
 
-
-// ============================================================
-// ЗНАЧЕНИЯ ПО УМОЛЧАНИЮ
-// ============================================================
 
 fromInput.value =
     firstDayString;
+
 
 toInput.value =
     todayString;
@@ -1111,15 +1322,15 @@ async function loadReport() {
     const from =
         fromInput.value;
 
+
     const to =
         toInput.value;
 
 
-    // --------------------------------------------------------
-    // Проверки
-    // --------------------------------------------------------
-
-    if (!from || !to) {
+    if (
+        !from ||
+        !to
+    ) {
 
         alert(
             'Выберите период'
@@ -1130,7 +1341,9 @@ async function loadReport() {
     }
 
 
-    if (from > to) {
+    if (
+        from > to
+    ) {
 
         alert(
             'Дата начала не может быть позже даты окончания'
@@ -1141,33 +1354,30 @@ async function loadReport() {
     }
 
 
-    // --------------------------------------------------------
-    // Сбрасываем предыдущий отчёт
-    // --------------------------------------------------------
-
     currentReport = [];
 
     filteredReport = [];
 
 
-    // --------------------------------------------------------
-    // UI
-    // --------------------------------------------------------
-
     loadBtn.disabled =
         true;
+
 
     excelBtn.style.display =
         'none';
 
+
     resetBtn.style.display =
         'none';
+
 
     dataFilters.style.display =
         'none';
 
+
     summary.style.display =
         'none';
+
 
     tableFooter.style.display =
         'none';
@@ -1186,7 +1396,7 @@ async function loadReport() {
         <tr>
 
             <td
-                colspan="8"
+                colspan="10"
                 class="empty"
             >
 
@@ -1202,75 +1412,54 @@ async function loadReport() {
     try {
 
 
-        // ====================================================
-        // ЗАПРОС
-        // ====================================================
-
         const url =
             `/api/driver-report?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
 
 
         const response =
-            await fetch(url);
+            await fetch(
+                url
+            );
 
 
         const data =
             await response.json();
 
 
-        // ====================================================
-        // ОШИБКА
-        // ====================================================
-
-        if (!response.ok) {
+        if (
+            !response.ok
+        ) {
 
             throw new Error(
-                extractError(data)
+                extractError(
+                    data
+                )
             );
 
         }
 
 
-        // ====================================================
-        // СОХРАНЯЕМ ПОЛНЫЙ ОТЧЁТ
-        // ====================================================
-
         currentReport =
             data.rows || [];
 
 
-        // Изначально показываем всё
         filteredReport =
-            [...currentReport];
+            [
+                ...currentReport
+            ];
 
-
-        // ====================================================
-        // СОЗДАЁМ СПИСКИ ФИЛЬТРОВ
-        // ====================================================
 
         buildFilters();
 
-
-        // ====================================================
-        // ПОКАЗЫВАЕМ ФИЛЬТРЫ
-        // ====================================================
 
         dataFilters.style.display =
             'grid';
 
 
-        // ====================================================
-        // ПОКАЗЫВАЕМ ОТЧЁТ
-        // ====================================================
-
         renderReport(
             filteredReport
         );
 
-
-        // ====================================================
-        // КНОПКИ
-        // ====================================================
 
         if (
             currentReport.length > 0
@@ -1278,6 +1467,7 @@ async function loadReport() {
 
             excelBtn.style.display =
                 'inline-block';
+
 
             resetBtn.style.display =
                 'inline-block';
@@ -1307,7 +1497,7 @@ async function loadReport() {
             <tr>
 
                 <td
-                    colspan="8"
+                    colspan="10"
                     class="empty"
                 >
 
@@ -1350,9 +1540,9 @@ async function loadReport() {
 function buildFilters() {
 
 
-    // --------------------------------------------------------
-    // Контрагенты
-    // --------------------------------------------------------
+    // ========================================================
+    // КОНТРАГЕНТЫ
+    // ========================================================
 
     const counterparties =
 
@@ -1413,9 +1603,9 @@ function buildFilters() {
     }
 
 
-    // --------------------------------------------------------
-    // Водители
-    // --------------------------------------------------------
+    // ========================================================
+    // ВОДИТЕЛИ
+    // ========================================================
 
     const drivers =
         new Set();
@@ -1426,29 +1616,34 @@ function buildFilters() {
         of currentReport
     ) {
 
-        const driverString =
-            String(
-                row.driver || ''
-            );
+        String(
+            row.driver || ''
+        )
 
-
-        driverString
             .split(',')
+
             .map(
                 driver =>
                     driver.trim()
             )
+
             .filter(Boolean)
+
             .forEach(
                 driver =>
-                    drivers.add(driver)
+                    drivers.add(
+                        driver
+                    )
             );
 
     }
 
 
     const sortedDrivers =
-        [...drivers]
+        [
+            ...drivers
+        ]
+
             .sort(
                 (a, b) =>
                     a.localeCompare(
@@ -1492,6 +1687,70 @@ function buildFilters() {
 
     }
 
+
+    // ========================================================
+    // СТАТУСЫ СЧЁТОВ
+    // ========================================================
+
+    const statuses =
+
+        [
+            ...new Set(
+
+                currentReport
+                    .map(
+                        row =>
+                            row.status ||
+                            'Без статуса'
+                    )
+                    .filter(Boolean)
+
+            )
+        ]
+
+        .sort(
+            (a, b) =>
+                a.localeCompare(
+                    b,
+                    'ru'
+                )
+        );
+
+
+    statusFilter.innerHTML = `
+
+        <option value="">
+            Все статусы
+        </option>
+
+    `;
+
+
+    for (
+        const invoiceStatus
+        of statuses
+    ) {
+
+        const option =
+            document.createElement(
+                'option'
+            );
+
+
+        option.value =
+            invoiceStatus;
+
+
+        option.textContent =
+            invoiceStatus;
+
+
+        statusFilter.appendChild(
+            option
+        );
+
+    }
+
 }
 
 
@@ -1510,9 +1769,9 @@ function applyFilters() {
         driverFilter.value;
 
 
-    // --------------------------------------------------------
-    // Фильтруем исходный отчёт
-    // --------------------------------------------------------
+    const selectedStatus =
+        statusFilter.value;
+
 
     filteredReport =
         currentReport.filter(
@@ -1528,15 +1787,11 @@ function applyFilters() {
                     !selectedCounterparty ||
 
                     row.counterparty ===
-                        selectedCounterparty;
+                    selectedCounterparty;
 
 
                 // --------------------------------------------
                 // Водитель
-                //
-                // Используем includes,
-                // потому что в строке может быть
-                // несколько водителей.
                 // --------------------------------------------
 
                 const driverOk =
@@ -1546,47 +1801,53 @@ function applyFilters() {
                     String(
                         row.driver || ''
                     )
-                    .split(',')
-                    .map(
-                        d => d.trim()
-                    )
-                    .includes(
-                        selectedDriver
-                    );
+
+                        .split(',')
+
+                        .map(
+                            driver =>
+                                driver.trim()
+                        )
+
+                        .includes(
+                            selectedDriver
+                        );
+
+
+                // --------------------------------------------
+                // Статус
+                // --------------------------------------------
+
+                const rowStatus =
+                    row.status ||
+                    'Без статуса';
+
+
+                const statusOk =
+
+                    !selectedStatus ||
+
+                    rowStatus ===
+                    selectedStatus;
 
 
                 return (
                     counterpartyOk &&
-                    driverOk
+                    driverOk &&
+                    statusOk
                 );
 
             }
         );
 
 
-    // --------------------------------------------------------
-    // Перерисовываем
-    // --------------------------------------------------------
-
     renderReport(
         filteredReport
     );
 
 
-    // --------------------------------------------------------
-    // Статус
-    // --------------------------------------------------------
-
-    const total =
-        currentReport.length;
-
-    const visible =
-        filteredReport.length;
-
-
     status.textContent =
-        `Показано ${visible} из ${total} строк`;
-
+        `Показано ${filteredReport.length} из ${currentReport.length} строк`;
 
 }
 
@@ -1601,12 +1862,19 @@ function resetFilters() {
     counterpartyFilter.value =
         '';
 
+
     driverFilter.value =
         '';
 
 
+    statusFilter.value =
+        '';
+
+
     filteredReport =
-        [...currentReport];
+        [
+            ...currentReport
+        ];
 
 
     renderReport(
@@ -1627,19 +1895,16 @@ function resetFilters() {
 function renderReport(rows) {
 
 
-    // ========================================================
-    // ПУСТО
-    // ========================================================
-
-    if (!rows.length) {
-
+    if (
+        !rows.length
+    ) {
 
         tableBody.innerHTML = `
 
             <tr>
 
                 <td
-                    colspan="8"
+                    colspan="10"
                     class="empty"
                 >
 
@@ -1653,9 +1918,9 @@ function renderReport(rows) {
         `;
 
 
-        // Сбрасываем итоги
-
-        updateTotals([]);
+        updateTotals(
+            []
+        );
 
 
         tableFooter.style.display =
@@ -1667,10 +1932,6 @@ function renderReport(rows) {
     }
 
 
-    // ========================================================
-    // ТАБЛИЦА
-    // ========================================================
-
     tableBody.innerHTML =
 
         rows
@@ -1678,10 +1939,43 @@ function renderReport(rows) {
                 row => {
 
 
-                    const difference =
+                    const invoiceSum =
                         Number(
-                            row.difference || 0
+                            row.invoiceSum ||
+                            0
                         );
+
+
+                    const shipmentSum =
+                        Number(
+                            row.shipmentSum ||
+                            0
+                        );
+
+
+                    // ----------------------------------------
+                    // 20%
+                    // ----------------------------------------
+
+                    const twentyPercent =
+                        shipmentSum *
+                        0.20;
+
+
+                    // ----------------------------------------
+                    // РАЗНИЦА
+                    //
+                    // Сумма счета
+                    // -
+                    // Сумма отгрузок
+                    // -
+                    // 20%
+                    // ----------------------------------------
+
+                    const difference =
+                        invoiceSum -
+                        shipmentSum -
+                        twentyPercent;
 
 
                     let differenceClass =
@@ -1713,7 +2007,11 @@ function renderReport(rows) {
                     // ----------------------------------------
 
                     const demands =
-                        (row.demands || [])
+                        (
+                            row.demands ||
+                            []
+                        )
+
                             .map(
                                 demand => `
 
@@ -1733,7 +2031,17 @@ function renderReport(rows) {
 
                                 `
                             )
+
                             .join('');
+
+
+                    // ----------------------------------------
+                    // Статус
+                    // ----------------------------------------
+
+                    const invoiceStatus =
+                        row.status ||
+                        'Без статуса';
 
 
                     return `
@@ -1778,8 +2086,23 @@ function renderReport(rows) {
 
                             <td>
 
+                                <span
+                                    class="invoice-status"
+                                >
+
+                                    ${escapeHtml(
+                                        invoiceStatus
+                                    )}
+
+                                </span>
+
+                            </td>
+
+
+                            <td>
+
                                 ${formatMoney(
-                                    row.invoiceSum
+                                    invoiceSum
                                 )}
 
                             </td>
@@ -1788,7 +2111,16 @@ function renderReport(rows) {
                             <td>
 
                                 ${formatMoney(
-                                    row.shipmentSum
+                                    shipmentSum
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${formatMoney(
+                                    twentyPercent
                                 )}
 
                             </td>
@@ -1817,12 +2149,9 @@ function renderReport(rows) {
 
                 }
             )
+
             .join('');
 
-
-    // ========================================================
-    // ИТОГИ
-    // ========================================================
 
     updateTotals(
         rows
@@ -1836,7 +2165,7 @@ function renderReport(rows) {
 
 
 // ============================================================
-// ПОСЧИТАТЬ ИТОГИ
+// ИТОГИ
 // ============================================================
 
 function updateTotals(rows) {
@@ -1850,6 +2179,10 @@ function updateTotals(rows) {
         0;
 
 
+    let twentyTotal =
+        0;
+
+
     let differenceTotal =
         0;
 
@@ -1859,29 +2192,52 @@ function updateTotals(rows) {
         of rows
     ) {
 
-        invoiceTotal +=
+        const invoiceSum =
             Number(
-                row.invoiceSum || 0
+                row.invoiceSum ||
+                0
             );
+
+
+        const shipmentSum =
+            Number(
+                row.shipmentSum ||
+                0
+            );
+
+
+        const twentyPercent =
+            shipmentSum *
+            0.20;
+
+
+        const difference =
+            invoiceSum -
+            shipmentSum -
+            twentyPercent;
+
+
+        invoiceTotal +=
+            invoiceSum;
 
 
         shipmentTotal +=
-            Number(
-                row.shipmentSum || 0
-            );
+            shipmentSum;
+
+
+        twentyTotal +=
+            twentyPercent;
 
 
         differenceTotal +=
-            Number(
-                row.difference || 0
-            );
+            difference;
 
     }
 
 
-    // --------------------------------------------------------
-    // Summary сверху
-    // --------------------------------------------------------
+    // ========================================================
+    // ИТОГИ СВЕРХУ
+    // ========================================================
 
     count.textContent =
         rows.length;
@@ -1899,6 +2255,12 @@ function updateTotals(rows) {
         );
 
 
+    totalTwenty.textContent =
+        formatMoney(
+            twentyTotal
+        );
+
+
     totalDifference.textContent =
         formatMoney(
             differenceTotal
@@ -1909,9 +2271,9 @@ function updateTotals(rows) {
         'flex';
 
 
-    // --------------------------------------------------------
-    // ИТОГО под таблицей
-    // --------------------------------------------------------
+    // ========================================================
+    // ИТОГО ПОД ТАБЛИЦЕЙ
+    // ========================================================
 
     footerInvoice.textContent =
         formatMoney(
@@ -1925,15 +2287,17 @@ function updateTotals(rows) {
         );
 
 
+    footerTwenty.textContent =
+        formatMoney(
+            twentyTotal
+        );
+
+
     footerDifference.textContent =
         formatMoney(
             differenceTotal
         );
 
-
-    // --------------------------------------------------------
-    // Цвет разницы
-    // --------------------------------------------------------
 
     footerDifference.className =
         '';
@@ -1963,14 +2327,16 @@ function updateTotals(rows) {
 
 // ============================================================
 // СКАЧАТЬ EXCEL
+// ============================================================
 //
 // ВАЖНО:
 //
-// Отправляем именно filteredReport,
-// а не currentReport.
+// Передаём filteredReport.
 //
-// Поэтому Excel содержит только
-// выбранные фильтрами строки.
+// Поэтому Excel содержит именно текущий
+// отфильтрованный список.
+//
+// Статус счета НЕ передаётся отдельно.
 // ============================================================
 
 async function downloadExcel() {
@@ -1992,6 +2358,7 @@ async function downloadExcel() {
     const from =
         fromInput.value;
 
+
     const to =
         toInput.value;
 
@@ -2006,10 +2373,6 @@ async function downloadExcel() {
         excelBtn.textContent =
             'Формируем Excel...';
 
-
-        // ====================================================
-        // POST
-        // ====================================================
 
         const response =
             await fetch(
@@ -2029,9 +2392,11 @@ async function downloadExcel() {
                     body:
                         JSON.stringify({
 
-                            from,
+                            from:
+                                from,
 
-                            to,
+                            to:
+                                to,
 
                             rows:
                                 filteredReport
@@ -2042,11 +2407,9 @@ async function downloadExcel() {
             );
 
 
-        // ====================================================
-        // Ошибка
-        // ====================================================
-
-        if (!response.ok) {
+        if (
+            !response.ok
+        ) {
 
 
             let errorData;
@@ -2059,7 +2422,8 @@ async function downloadExcel() {
 
             } catch {
 
-                errorData = {};
+                errorData =
+                    {};
 
             }
 
@@ -2073,17 +2437,9 @@ async function downloadExcel() {
         }
 
 
-        // ====================================================
-        // Получаем Excel
-        // ====================================================
-
         const blob =
             await response.blob();
 
-
-        // ====================================================
-        // Скачивание
-        // ====================================================
 
         const url =
             window.URL.createObjectURL(
@@ -2158,29 +2514,41 @@ function formatMoney(value) {
 
 
     const number =
-        Number(value || 0);
+        Number(
+            value || 0
+        );
 
 
-    if (!Number.isFinite(number)) {
+    if (
+        !Number.isFinite(number)
+    ) {
 
         return '0,00 ₽';
 
     }
 
 
-    return number
-        .toLocaleString(
-            'ru-RU',
-            {
+    return (
 
-                minimumFractionDigits:
-                    2,
+        number
+            .toLocaleString(
+                'ru-RU',
+                {
 
-                maximumFractionDigits:
-                    2
+                    minimumFractionDigits:
+                        2,
 
-            }
-        ) + ' ₽';
+                    maximumFractionDigits:
+                        2
+
+                }
+            )
+
+        +
+
+        ' ₽'
+
+    );
 
 }
 
@@ -2192,7 +2560,9 @@ function formatMoney(value) {
 function formatDate(value) {
 
 
-    if (!value) {
+    if (
+        !value
+    ) {
 
         return '';
 
@@ -2227,13 +2597,15 @@ function formatDate(value) {
 
 
 // ============================================================
-// ТЕКСТ ОШИБКИ
+// ПОЛУЧЕНИЕ ТЕКСТА ОШИБКИ
 // ============================================================
 
 function extractError(data) {
 
 
-    if (!data) {
+    if (
+        !data
+    ) {
 
         return 'Неизвестная ошибка';
 
@@ -2241,7 +2613,8 @@ function extractError(data) {
 
 
     if (
-        typeof data.error === 'string'
+        typeof data.error ===
+        'string'
     ) {
 
         return data.error;
@@ -2254,12 +2627,14 @@ function extractError(data) {
     ) {
 
         return data.error.errors
+
             .map(
                 error =>
                     error.error ||
                     error.message ||
                     'Ошибка'
             )
+
             .join('\n');
 
     }
@@ -2270,12 +2645,14 @@ function extractError(data) {
     ) {
 
         return data.errors
+
             .map(
                 error =>
                     error.error ||
                     error.message ||
                     'Ошибка'
             )
+
             .join('\n');
 
     }
@@ -2290,7 +2667,7 @@ function extractError(data) {
 
 
 // ============================================================
-// HTML ESCAPE
+// ЗАЩИТА HTML
 // ============================================================
 
 function escapeHtml(value) {
@@ -2333,3 +2710,4 @@ function escapeHtml(value) {
 </body>
 
 </html>
+```
