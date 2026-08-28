@@ -4,6 +4,10 @@ const ExcelJS = require('exceljs');
 
 const app = express();
 
+app.use(express.json({
+    limit: '10mb'
+}));
+
 
 // ============================================================
 // MOYSKLAD
@@ -12,25 +16,31 @@ const app = express();
 const MS_TOKEN = '562d927aad09e55f49bed5ebd3751c7ccfd19a23';
 
 if (!MS_TOKEN) {
-    console.warn('MS_TOKEN не задан');
+    console.warn('WARNING: MS_TOKEN не задан');
 }
 
 const api = axios.create({
     baseURL: 'https://api.moysklad.ru/api/remap/1.2',
+
     headers: {
         Authorization: `Bearer ${MS_TOKEN}`,
         Accept: 'application/json;charset=utf-8'
     },
+
     timeout: 30000
 });
 
 
 // ============================================================
-// HTML
+// ГЛАВНАЯ СТРАНИЦА
 // ============================================================
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+
+    res.sendFile(
+        __dirname + '/index.html'
+    );
+
 });
 
 
@@ -41,9 +51,11 @@ app.get('/', (req, res) => {
 async function getAll(entity) {
 
     let offset = 0;
+
     const limit = 1000;
 
     const rows = [];
+
 
     while (true) {
 
@@ -51,32 +63,51 @@ async function getAll(entity) {
             `/entity/${entity}?limit=${limit}&offset=${offset}`
         );
 
+
         const batch =
             response.data.rows || [];
 
-        rows.push(...batch);
+
+        rows.push(
+            ...batch
+        );
+
 
         const total =
             response.data.meta?.size ||
             rows.length;
 
+
+        console.log(
+            entity,
+            rows.length,
+            '/',
+            total
+        );
+
+
         if (rows.length >= total) {
             break;
         }
+
 
         if (!batch.length) {
             break;
         }
 
+
         offset += limit;
+
     }
 
+
     return rows;
+
 }
 
 
 // ============================================================
-// НОРМАЛИЗАЦИЯ
+// НОРМАЛИЗАЦИЯ ИМЕНИ
 // ============================================================
 
 function normalizeName(name) {
@@ -85,6 +116,7 @@ function normalizeName(name) {
         .trim()
         .replace(/\s+/g, ' ')
         .toLowerCase();
+
 }
 
 
@@ -95,48 +127,53 @@ function normalizeName(name) {
 async function buildDriverReport(from, to) {
 
     console.log(
-        `Создание отчёта: ${from} -> ${to}`
+        '=========================================='
+    );
+
+    console.log(
+        `ОТЧЁТ ПО ВОДИТЕЛЯМ: ${from} -> ${to}`
+    );
+
+    console.log(
+        '=========================================='
     );
 
 
-    // --------------------------------------------------------
-    // Загружаем данные
-    // --------------------------------------------------------
+    // ========================================================
+    // ЗАГРУЖАЕМ ДАННЫЕ
+    // ========================================================
 
-    const [
-        invoices,
-        demands,
-        counterparties
-    ] = await Promise.all([
+    const invoices =
+        await getAll('invoicein');
 
-        getAll('invoicein'),
 
-        getAll('demand'),
+    const demands =
+        await getAll('demand');
 
-        getAll('counterparty')
 
-    ]);
+    const counterparties =
+        await getAll('counterparty');
 
 
     console.log(
-        'Счета:',
+        'Счетов:',
         invoices.length
     );
 
     console.log(
-        'Отгрузки:',
+        'Отгрузок:',
         demands.length
     );
 
     console.log(
-        'Контрагенты:',
+        'Контрагентов:',
         counterparties.length
     );
 
 
-    // --------------------------------------------------------
-    // Контрагенты "наемники"
-    // --------------------------------------------------------
+    // ========================================================
+    // КОНТРАГЕНТЫ С ТЕГОМ "НАЕМНИКИ"
+    // ========================================================
 
     const mercenaryNames =
         new Set();
@@ -152,7 +189,9 @@ async function buildDriverReport(from, to) {
             mercenaryNames.add(
                 normalizeName(cp.name)
             );
+
         }
+
     }
 
 
@@ -162,16 +201,25 @@ async function buildDriverReport(from, to) {
     );
 
 
-    // --------------------------------------------------------
-    // Период
-    // --------------------------------------------------------
+    // ========================================================
+    // ПЕРИОД
+    // ========================================================
 
     const fromDate =
-        new Date(`${from}T00:00:00`);
+        new Date(
+            `${from}T00:00:00`
+        );
+
 
     const toDate =
-        new Date(`${to}T23:59:59.999`);
+        new Date(
+            `${to}T23:59:59.999`
+        );
 
+
+    // ========================================================
+    // ОТЧЁТ
+    // ========================================================
 
     const report = [];
 
@@ -191,7 +239,10 @@ async function buildDriverReport(from, to) {
             new Date(invoice.moment);
 
 
-        // Счёт вне периода
+        // ----------------------------------------------------
+        // Только выбранный период
+        // ----------------------------------------------------
+
         if (
             invoiceDate < fromDate ||
             invoiceDate > toDate
@@ -200,15 +251,33 @@ async function buildDriverReport(from, to) {
         }
 
 
-        // ----------------------------------------------------
-        // Полный счёт
-        // ----------------------------------------------------
+        // ====================================================
+        // ПОЛНЫЙ СЧЁТ С КОНТРАГЕНТОМ
+        // ====================================================
 
-        const fullInvoice = (
-            await api.get(
-                `/entity/invoicein/${invoice.id}?expand=agent`
-            )
-        ).data;
+        let fullInvoice;
+
+
+        try {
+
+            fullInvoice = (
+                await api.get(
+                    `/entity/invoicein/${invoice.id}?expand=agent`
+                )
+            ).data;
+
+        } catch (error) {
+
+            console.error(
+                'Ошибка получения счета:',
+                invoice.id,
+                error.response?.data ||
+                error.message
+            );
+
+            continue;
+
+        }
 
 
         if (!fullInvoice.agent?.name) {
@@ -224,24 +293,30 @@ async function buildDriverReport(from, to) {
             normalizeName(counterparty);
 
 
-        // ----------------------------------------------------
-        // Только наемники
-        // ----------------------------------------------------
+        // ====================================================
+        // ТОЛЬКО "НАЕМНИКИ"
+        // ====================================================
 
         if (
             !mercenaryNames.has(
                 normalizedCounterparty
             )
         ) {
+
             continue;
+
         }
 
 
         const day =
-            fullInvoice.moment.substring(0, 10);
+            fullInvoice.moment.substring(
+                0,
+                10
+            );
 
 
         const matchedDemands = [];
+
 
         let shipmentSum = 0;
 
@@ -258,23 +333,30 @@ async function buildDriverReport(from, to) {
 
 
             const demandDay =
-                demand.moment.substring(0, 10);
+                demand.moment.substring(
+                    0,
+                    10
+                );
 
 
-            // Отгрузка должна быть в тот же день
+            // ------------------------------------------------
+            // Отгрузка в тот же день
+            // ------------------------------------------------
+
             if (demandDay !== day) {
                 continue;
             }
 
 
-            // ------------------------------------------------
-            // Водитель
-            // ------------------------------------------------
+            // =================================================
+            // ВОДИТЕЛЬ
+            // =================================================
 
             const driverAttr =
                 demand.attributes
                     ?.find(
-                        a => a.name === 'Водитель'
+                        a =>
+                            a.name === 'Водитель'
                     )
                     ?.value?.name || '';
 
@@ -285,20 +367,22 @@ async function buildDriverReport(from, to) {
 
 
             const normalizedDriver =
-                normalizeName(driverAttr);
+                normalizeName(
+                    driverAttr
+                );
 
 
-            // ------------------------------------------------
-            // Контрагент отгрузки
-            // ------------------------------------------------
+            // =================================================
+            // КОНТРАГЕНТ ОТГРУЗКИ
+            // =================================================
 
             const demandCounterparty =
                 demand.agent?.name || '';
 
 
-            // ------------------------------------------------
-            // Сопоставление
-            // ------------------------------------------------
+            // =================================================
+            // СОПОСТАВЛЕНИЕ
+            // =================================================
 
             const driverMatches =
                 normalizedCounterparty.includes(
@@ -316,18 +400,22 @@ async function buildDriverReport(from, to) {
                 !driverMatches &&
                 !counterpartyMatches
             ) {
+
                 continue;
+
             }
 
 
-            // ------------------------------------------------
-            // Сумма
-            // ------------------------------------------------
+            // =================================================
+            // СУММА ОТГРУЗКИ
+            // =================================================
 
             if (
                 (demand.sum || 0) <= 0
             ) {
+
                 continue;
+
             }
 
 
@@ -359,18 +447,22 @@ async function buildDriverReport(from, to) {
         }
 
 
-        // ----------------------------------------------------
-        // Нет отгрузок
-        // ----------------------------------------------------
+        // ====================================================
+        // ЕСЛИ ОТГРУЗОК НЕТ
+        // ====================================================
 
-        if (!matchedDemands.length) {
+        if (
+            matchedDemands.length === 0
+        ) {
+
             continue;
+
         }
 
 
-        // ----------------------------------------------------
-        // Добавляем строку
-        // ----------------------------------------------------
+        // ====================================================
+        // ДОБАВЛЯЕМ В ОТЧЁТ
+        // ====================================================
 
         report.push({
 
@@ -389,7 +481,9 @@ async function buildDriverReport(from, to) {
                 [
                     ...new Set(
                         matchedDemands
-                            .map(d => d.driver)
+                            .map(
+                                d => d.driver
+                            )
                             .filter(Boolean)
                     )
                 ].join(', '),
@@ -415,20 +509,26 @@ async function buildDriverReport(from, to) {
     // СОРТИРОВКА
     // ========================================================
 
-    report.sort((a, b) => {
+    report.sort(
+        (a, b) => {
 
-        if (a.date !== b.date) {
+            if (
+                a.date !== b.date
+            ) {
 
-            return a.date.localeCompare(
-                b.date
+                return a.date.localeCompare(
+                    b.date
+                );
+
+            }
+
+
+            return a.counterparty.localeCompare(
+                b.counterparty
             );
+
         }
-
-        return a.counterparty.localeCompare(
-            b.counterparty
-        );
-
-    });
+    );
 
 
     console.log(
@@ -438,12 +538,14 @@ async function buildDriverReport(from, to) {
 
 
     return report;
+
 }
 
 
 // ============================================================
-// JSON ОТЧЁТ
+// API: ПОЛУЧИТЬ ОТЧЁТ
 //
+// GET
 // /api/driver-report?from=2026-08-01&to=2026-08-28
 // ============================================================
 
@@ -459,6 +561,10 @@ app.get(
             } = req.query;
 
 
+            // ------------------------------------------------
+            // Проверяем даты
+            // ------------------------------------------------
+
             if (!from || !to) {
 
                 return res.status(400).json({
@@ -469,6 +575,7 @@ app.get(
                         'Необходимо указать from и to'
 
                 });
+
             }
 
 
@@ -482,8 +589,13 @@ app.get(
                         'Дата начала больше даты окончания'
 
                 });
+
             }
 
+
+            // ------------------------------------------------
+            // Создаём отчёт
+            // ------------------------------------------------
 
             const report =
                 await buildDriverReport(
@@ -491,6 +603,10 @@ app.get(
                     to
                 );
 
+
+            // ------------------------------------------------
+            // Возвращаем JSON
+            // ------------------------------------------------
 
             res.json({
 
@@ -509,13 +625,13 @@ app.get(
             });
 
 
-        } catch (e) {
+        } catch (error) {
 
             console.error(
                 'DRIVER REPORT ERROR:',
-                e.response?.data ||
-                e.message ||
-                e
+                error.response?.data ||
+                error.message ||
+                error
             );
 
 
@@ -524,8 +640,8 @@ app.get(
                 success: false,
 
                 error:
-                    e.response?.data ||
-                    e.message ||
+                    error.response?.data ||
+                    error.message ||
                     'Ошибка получения отчёта'
 
             });
@@ -537,12 +653,19 @@ app.get(
 
 
 // ============================================================
-// EXCEL
+// API: СОЗДАТЬ EXCEL
 //
-// /api/driver-report.xlsx?from=2026-08-01&to=2026-08-28
+// ВАЖНО:
+//
+// Этот endpoint НЕ обращается к МойСклад.
+//
+// Он получает уже готовые строки от браузера.
+//
+// POST
+// /api/driver-report.xlsx
 // ============================================================
 
-app.get(
+app.post(
     '/api/driver-report.xlsx',
     async (req, res) => {
 
@@ -550,42 +673,47 @@ app.get(
 
             const {
                 from,
-                to
-            } = req.query;
+                to,
+                rows
+            } = req.body;
 
+
+            // ------------------------------------------------
+            // Проверяем данные
+            // ------------------------------------------------
 
             if (!from || !to) {
 
                 return res.status(400).json({
 
                     error:
-                        'Необходимо указать from и to'
+                        'Не указан период'
 
                 });
+
             }
 
 
-            if (from > to) {
+            if (!Array.isArray(rows)) {
 
                 return res.status(400).json({
 
                     error:
-                        'Дата начала больше даты окончания'
+                        'Не переданы строки отчёта'
 
                 });
+
             }
 
 
-            const report =
-                await buildDriverReport(
-                    from,
-                    to
-                );
+            console.log(
+                `Создание Excel: ${rows.length} строк`
+            );
 
 
-            // ------------------------------------------------
-            // Создаём Excel
-            // ------------------------------------------------
+            // =================================================
+            // СОЗДАЁМ EXCEL
+            // =================================================
 
             const workbook =
                 new ExcelJS.Workbook();
@@ -596,6 +724,10 @@ app.get(
                     'Отчет'
                 );
 
+
+            // =================================================
+            // КОЛОНКИ
+            // =================================================
 
             sheet.columns = [
 
@@ -650,11 +782,20 @@ app.get(
             ];
 
 
-            // ------------------------------------------------
-            // Заполняем Excel
-            // ------------------------------------------------
+            // =================================================
+            // СТРОКИ
+            // =================================================
 
-            for (const row of report) {
+            for (const row of rows) {
+
+                const demandsText =
+                    (row.demands || [])
+                        .map(
+                            demand =>
+                                `${demand.number} (${Number(demand.sum || 0).toFixed(2)})`
+                        )
+                        .join(', ');
+
 
                 sheet.addRow({
 
@@ -671,44 +812,46 @@ app.get(
                         row.invoice,
 
                     invoiceSum:
-                        row.invoiceSum,
+                        Number(
+                            row.invoiceSum || 0
+                        ),
 
                     shipmentSum:
-                        row.shipmentSum,
+                        Number(
+                            row.shipmentSum || 0
+                        ),
 
                     difference:
-                        row.difference,
+                        Number(
+                            row.difference || 0
+                        ),
 
                     demands:
-                        (row.demands || [])
-                            .map(
-                                d =>
-                                    `${d.number} (${Number(d.sum).toFixed(2)})`
-                            )
-                            .join(', ')
+                        demandsText
 
                 });
 
             }
 
 
-            // ------------------------------------------------
-            // Закрепляем первую строку
-            // ------------------------------------------------
+            // =================================================
+            // ЗАКРЕПИТЬ ПЕРВУЮ СТРОКУ
+            // =================================================
 
             sheet.views = [
 
                 {
                     state: 'frozen',
+
                     ySplit: 1
                 }
 
             ];
 
 
-            // ------------------------------------------------
-            // Фильтр
-            // ------------------------------------------------
+            // =================================================
+            // ФИЛЬТР
+            // =================================================
 
             sheet.autoFilter = {
 
@@ -719,9 +862,9 @@ app.get(
             };
 
 
-            // ------------------------------------------------
-            // Формат денег
-            // ------------------------------------------------
+            // =================================================
+            // ФОРМАТ ЧИСЕЛ
+            // =================================================
 
             for (
                 let i = 2;
@@ -729,28 +872,39 @@ app.get(
                 i++
             ) {
 
-                sheet.getCell(`E${i}`)
-                    .numFmt =
-                    '#,##0.00';
-
-                sheet.getCell(`F${i}`)
-                    .numFmt =
-                    '#,##0.00';
-
-                sheet.getCell(`G${i}`)
-                    .numFmt =
+                sheet.getCell(
+                    `E${i}`
+                ).numFmt =
                     '#,##0.00';
 
 
-                const diff =
+                sheet.getCell(
+                    `F${i}`
+                ).numFmt =
+                    '#,##0.00';
+
+
+                sheet.getCell(
+                    `G${i}`
+                ).numFmt =
+                    '#,##0.00';
+
+
+                const difference =
                     Number(
                         sheet.getCell(
                             `G${i}`
-                        ).value
+                        ).value || 0
                     );
 
 
-                if (diff > 0) {
+                // --------------------------------------------
+                // Положительная разница
+                // --------------------------------------------
+
+                if (
+                    difference > 0
+                ) {
 
                     sheet.getCell(
                         `G${i}`
@@ -761,7 +915,10 @@ app.get(
                         pattern: 'solid',
 
                         fgColor: {
-                            argb: 'FFC6EFCE'
+
+                            argb:
+                                'FFC6EFCE'
+
                         }
 
                     };
@@ -769,7 +926,13 @@ app.get(
                 }
 
 
-                if (diff < 0) {
+                // --------------------------------------------
+                // Отрицательная разница
+                // --------------------------------------------
+
+                if (
+                    difference < 0
+                ) {
 
                     sheet.getCell(
                         `G${i}`
@@ -780,7 +943,10 @@ app.get(
                         pattern: 'solid',
 
                         fgColor: {
-                            argb: 'FFFFC7CE'
+
+                            argb:
+                                'FFFFC7CE'
+
                         }
 
                     };
@@ -790,17 +956,25 @@ app.get(
             }
 
 
-            // ------------------------------------------------
-            // Excel в память
-            // ------------------------------------------------
+            // =================================================
+            // EXCEL В ПАМЯТЬ
+            // =================================================
 
             const buffer =
                 await workbook.xlsx.writeBuffer();
 
 
+            // =================================================
+            // ИМЯ ФАЙЛА
+            // =================================================
+
             const fileName =
                 `driver-report-${from}-${to}.xlsx`;
 
+
+            // =================================================
+            // ОТДАЁМ ФАЙЛ
+            // =================================================
 
             res.setHeader(
                 'Content-Type',
@@ -817,21 +991,20 @@ app.get(
             res.send(buffer);
 
 
-        } catch (e) {
+        } catch (error) {
 
             console.error(
                 'EXCEL ERROR:',
-                e.response?.data ||
-                e.message ||
-                e
+                error.response?.data ||
+                error.message ||
+                error
             );
 
 
             res.status(500).json({
 
                 error:
-                    e.response?.data ||
-                    e.message ||
+                    error.message ||
                     'Ошибка создания Excel'
 
             });
