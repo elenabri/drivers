@@ -6,7 +6,7 @@ const app = express();
 
 app.use(express.json({
     limit: '10mb'
-}));
+});
 
 
 // ============================================================
@@ -20,19 +20,27 @@ if (!MS_TOKEN) {
 }
 
 const api = axios.create({
-    baseURL: 'https://api.moysklad.ru/api/remap/1.2',
+
+    baseURL:
+        'https://api.moysklad.ru/api/remap/1.2',
 
     headers: {
-        Authorization: `Bearer ${MS_TOKEN}`,
-        Accept: 'application/json;charset=utf-8'
+
+        Authorization:
+            `Bearer ${MS_TOKEN}`,
+
+        Accept:
+            'application/json;charset=utf-8'
+
     },
 
     timeout: 30000
+
 });
 
 
 // ============================================================
-// ГЛАВНАЯ СТРАНИЦА
+// ГЛАВНАЯ
 // ============================================================
 
 app.get('/', (req, res) => {
@@ -59,9 +67,10 @@ async function getAll(entity) {
 
     while (true) {
 
-        const response = await api.get(
-            `/entity/${entity}?limit=${limit}&offset=${offset}`
-        );
+        const response =
+            await api.get(
+                `/entity/${entity}?limit=${limit}&offset=${offset}`
+            );
 
 
         const batch =
@@ -86,13 +95,21 @@ async function getAll(entity) {
         );
 
 
-        if (rows.length >= total) {
+        if (
+            rows.length >= total
+        ) {
+
             break;
+
         }
 
 
-        if (!batch.length) {
+        if (
+            !batch.length
+        ) {
+
             break;
+
         }
 
 
@@ -107,14 +124,19 @@ async function getAll(entity) {
 
 
 // ============================================================
-// НОРМАЛИЗАЦИЯ ИМЕНИ
+// НОРМАЛИЗАЦИЯ
 // ============================================================
 
 function normalizeName(name) {
 
-    return String(name || '')
+    return String(
+        name || ''
+    )
         .trim()
-        .replace(/\s+/g, ' ')
+        .replace(
+            /\s+/g,
+            ' '
+        )
         .toLowerCase();
 
 }
@@ -144,15 +166,21 @@ async function buildDriverReport(from, to) {
     // ========================================================
 
     const invoices =
-        await getAll('invoicein');
+        await getAll(
+            'invoicein'
+        );
 
 
     const demands =
-        await getAll('demand');
+        await getAll(
+            'demand'
+        );
 
 
     const counterparties =
-        await getAll('counterparty');
+        await getAll(
+            'counterparty'
+        );
 
 
     console.log(
@@ -160,10 +188,12 @@ async function buildDriverReport(from, to) {
         invoices.length
     );
 
+
     console.log(
         'Отгрузок:',
         demands.length
     );
+
 
     console.log(
         'Контрагентов:',
@@ -179,15 +209,22 @@ async function buildDriverReport(from, to) {
         new Set();
 
 
-    for (const cp of counterparties) {
+    for (
+        const cp
+        of counterparties
+    ) {
 
         if (
             cp.tags &&
-            cp.tags.includes('наемники')
+            cp.tags.includes(
+                'наемники'
+            )
         ) {
 
             mercenaryNames.add(
-                normalizeName(cp.name)
+                normalizeName(
+                    cp.name
+                )
             );
 
         }
@@ -217,10 +254,6 @@ async function buildDriverReport(from, to) {
         );
 
 
-    // ========================================================
-    // ОТЧЁТ
-    // ========================================================
-
     const report = [];
 
 
@@ -228,15 +261,24 @@ async function buildDriverReport(from, to) {
     // ОБРАБОТКА СЧЕТОВ
     // ========================================================
 
-    for (const invoice of invoices) {
+    for (
+        const invoice
+        of invoices
+    ) {
 
-        if (!invoice.moment) {
+        if (
+            !invoice.moment
+        ) {
+
             continue;
+
         }
 
 
         const invoiceDate =
-            new Date(invoice.moment);
+            new Date(
+                invoice.moment
+            );
 
 
         // ----------------------------------------------------
@@ -247,12 +289,16 @@ async function buildDriverReport(from, to) {
             invoiceDate < fromDate ||
             invoiceDate > toDate
         ) {
+
             continue;
+
         }
 
 
         // ====================================================
-        // ПОЛНЫЙ СЧЁТ С КОНТРАГЕНТОМ
+        // ПОЛУЧАЕМ ПОЛНЫЙ СЧЁТ
+        //
+        // Здесь дополнительно получаем state.
         // ====================================================
 
         let fullInvoice;
@@ -260,11 +306,12 @@ async function buildDriverReport(from, to) {
 
         try {
 
-            fullInvoice = (
-                await api.get(
-                    `/entity/invoicein/${invoice.id}?expand=agent`
-                )
-            ).data;
+            fullInvoice =
+                (
+                    await api.get(
+                        `/entity/invoicein/${invoice.id}?expand=agent,state`
+                    )
+                ).data;
 
         } catch (error) {
 
@@ -280,8 +327,16 @@ async function buildDriverReport(from, to) {
         }
 
 
-        if (!fullInvoice.agent?.name) {
+        // ====================================================
+        // КОНТРАГЕНТ
+        // ====================================================
+
+        if (
+            !fullInvoice.agent?.name
+        ) {
+
             continue;
+
         }
 
 
@@ -290,11 +345,13 @@ async function buildDriverReport(from, to) {
 
 
         const normalizedCounterparty =
-            normalizeName(counterparty);
+            normalizeName(
+                counterparty
+            );
 
 
         // ====================================================
-        // ТОЛЬКО "НАЕМНИКИ"
+        // ТОЛЬКО КОНТРАГЕНТЫ С ТЕГОМ "НАЕМНИКИ"
         // ====================================================
 
         if (
@@ -308,6 +365,19 @@ async function buildDriverReport(from, to) {
         }
 
 
+        // ====================================================
+        // СТАТУС СЧЁТА
+        // ====================================================
+
+        const invoiceStatus =
+            fullInvoice.state?.name ||
+            'Без статуса';
+
+
+        // ====================================================
+        // ДАТА
+        // ====================================================
+
         const day =
             fullInvoice.moment.substring(
                 0,
@@ -315,20 +385,27 @@ async function buildDriverReport(from, to) {
             );
 
 
+        // ====================================================
+        // ОТГРУЗКИ
+        // ====================================================
+
         const matchedDemands = [];
 
 
         let shipmentSum = 0;
 
 
-        // ====================================================
-        // ПОИСК ОТГРУЗОК
-        // ====================================================
+        for (
+            const demand
+            of demands
+        ) {
 
-        for (const demand of demands) {
+            if (
+                !demand.moment
+            ) {
 
-            if (!demand.moment) {
                 continue;
+
             }
 
 
@@ -340,11 +417,15 @@ async function buildDriverReport(from, to) {
 
 
             // ------------------------------------------------
-            // Отгрузка в тот же день
+            // Отгрузка должна быть в тот же день
             // ------------------------------------------------
 
-            if (demandDay !== day) {
+            if (
+                demandDay !== day
+            ) {
+
                 continue;
+
             }
 
 
@@ -356,13 +437,19 @@ async function buildDriverReport(from, to) {
                 demand.attributes
                     ?.find(
                         a =>
-                            a.name === 'Водитель'
+                            a.name ===
+                            'Водитель'
                     )
-                    ?.value?.name || '';
+                    ?.value?.name ||
+                '';
 
 
-            if (!driverAttr) {
+            if (
+                !driverAttr
+            ) {
+
                 continue;
+
             }
 
 
@@ -377,7 +464,8 @@ async function buildDriverReport(from, to) {
             // =================================================
 
             const demandCounterparty =
-                demand.agent?.name || '';
+                demand.agent?.name ||
+                '';
 
 
             // =================================================
@@ -393,7 +481,8 @@ async function buildDriverReport(from, to) {
             const counterpartyMatches =
                 normalizeName(
                     demandCounterparty
-                ) === normalizedCounterparty;
+                ) ===
+                normalizedCounterparty;
 
 
             if (
@@ -423,7 +512,8 @@ async function buildDriverReport(from, to) {
                 demand.sum / 100;
 
 
-            shipmentSum += sum;
+            shipmentSum +=
+                sum;
 
 
             matchedDemands.push({
@@ -434,7 +524,8 @@ async function buildDriverReport(from, to) {
                 number:
                     demand.name,
 
-                sum,
+                sum:
+                    sum,
 
                 driver:
                     driverAttr,
@@ -461,7 +552,41 @@ async function buildDriverReport(from, to) {
 
 
         // ====================================================
-        // ДОБАВЛЯЕМ В ОТЧЁТ
+        // СУММА СЧЁТА
+        // ====================================================
+
+        const invoiceSum =
+            fullInvoice.sum / 100;
+
+
+        // ====================================================
+        // 20%
+        //
+        // 20% от суммы отгрузок
+        // ====================================================
+
+        const twentyPercent =
+            shipmentSum * 0.20;
+
+
+        // ====================================================
+        // РАЗНИЦА
+        //
+        // Сумма счета
+        // -
+        // Сумма отгрузок
+        // -
+        // 20%
+        // ====================================================
+
+        const difference =
+            invoiceSum -
+            shipmentSum -
+            twentyPercent;
+
+
+        // ====================================================
+        // ДОБАВЛЯЕМ СТРОКУ
         // ====================================================
 
         report.push({
@@ -472,30 +597,42 @@ async function buildDriverReport(from, to) {
             invoice:
                 fullInvoice.name,
 
+            // Статус нужен сайту для отображения
+            // и фильтрации.
+            //
+            // В Excel мы его НЕ используем.
+            status:
+                invoiceStatus,
+
             date:
                 day,
 
-            counterparty,
+            counterparty:
+                counterparty,
 
             driver:
                 [
                     ...new Set(
                         matchedDemands
                             .map(
-                                d => d.driver
+                                d =>
+                                    d.driver
                             )
                             .filter(Boolean)
                     )
                 ].join(', '),
 
             invoiceSum:
-                fullInvoice.sum / 100,
+                invoiceSum,
 
-            shipmentSum,
+            shipmentSum:
+                shipmentSum,
+
+            twentyPercent:
+                twentyPercent,
 
             difference:
-                shipmentSum -
-                fullInvoice.sum / 100,
+                difference,
 
             demands:
                 matchedDemands
@@ -544,9 +681,6 @@ async function buildDriverReport(from, to) {
 
 // ============================================================
 // API: ПОЛУЧИТЬ ОТЧЁТ
-//
-// GET
-// /api/driver-report?from=2026-08-01&to=2026-08-28
 // ============================================================
 
 app.get(
@@ -562,33 +696,44 @@ app.get(
 
 
             // ------------------------------------------------
-            // Проверяем даты
+            // Проверка дат
             // ------------------------------------------------
 
-            if (!from || !to) {
+            if (
+                !from ||
+                !to
+            ) {
 
-                return res.status(400).json({
+                return res
+                    .status(400)
+                    .json({
 
-                    success: false,
+                        success:
+                            false,
 
-                    error:
-                        'Необходимо указать from и to'
+                        error:
+                            'Необходимо указать from и to'
 
-                });
+                    });
 
             }
 
 
-            if (from > to) {
+            if (
+                from > to
+            ) {
 
-                return res.status(400).json({
+                return res
+                    .status(400)
+                    .json({
 
-                    success: false,
+                        success:
+                            false,
 
-                    error:
-                        'Дата начала больше даты окончания'
+                        error:
+                            'Дата начала больше даты окончания'
 
-                });
+                    });
 
             }
 
@@ -610,11 +755,14 @@ app.get(
 
             res.json({
 
-                success: true,
+                success:
+                    true,
 
-                from,
+                from:
+                    from,
 
-                to,
+                to:
+                    to,
 
                 count:
                     report.length,
@@ -635,16 +783,19 @@ app.get(
             );
 
 
-            res.status(500).json({
+            res
+                .status(500)
+                .json({
 
-                success: false,
+                    success:
+                        false,
 
-                error:
-                    error.response?.data ||
-                    error.message ||
-                    'Ошибка получения отчёта'
+                    error:
+                        error.response?.data ||
+                        error.message ||
+                        'Ошибка получения отчёта'
 
-            });
+                });
 
         }
 
@@ -653,16 +804,13 @@ app.get(
 
 
 // ============================================================
-// API: СОЗДАТЬ EXCEL
+// API: EXCEL
 //
 // ВАЖНО:
 //
-// Этот endpoint НЕ обращается к МойСклад.
+// Excel получает УЖЕ ОТФИЛЬТРОВАННЫЕ строки.
 //
-// Он получает уже готовые строки от браузера.
-//
-// POST
-// /api/driver-report.xlsx
+// Статус счета здесь НЕ записываем.
 // ============================================================
 
 app.post(
@@ -679,29 +827,54 @@ app.post(
 
 
             // ------------------------------------------------
-            // Проверяем данные
+            // Проверка
             // ------------------------------------------------
 
-            if (!from || !to) {
+            if (
+                !from ||
+                !to
+            ) {
 
-                return res.status(400).json({
+                return res
+                    .status(400)
+                    .json({
 
-                    error:
-                        'Не указан период'
+                        error:
+                            'Не указан период'
 
-                });
+                    });
 
             }
 
 
-            if (!Array.isArray(rows)) {
+            if (
+                !Array.isArray(rows)
+            ) {
 
-                return res.status(400).json({
+                return res
+                    .status(400)
+                    .json({
 
-                    error:
-                        'Не переданы строки отчёта'
+                        error:
+                            'Не переданы строки отчёта'
 
-                });
+                    });
+
+            }
+
+
+            if (
+                rows.length === 0
+            ) {
+
+                return res
+                    .status(400)
+                    .json({
+
+                        error:
+                            'Нет данных для Excel'
+
+                    });
 
             }
 
@@ -712,12 +885,24 @@ app.post(
 
 
             // =================================================
-            // СОЗДАЁМ EXCEL
+            // WORKBOOK
             // =================================================
 
             const workbook =
                 new ExcelJS.Workbook();
 
+
+            workbook.creator =
+                'Отчёт по водителям';
+
+
+            workbook.created =
+                new Date();
+
+
+            // =================================================
+            // ЛИСТ
+            // =================================================
 
             const sheet =
                 workbook.addWorksheet(
@@ -726,57 +911,98 @@ app.post(
 
 
             // =================================================
-            // КОЛОНКИ
+            // КОЛОНКИ EXCEL
+            //
+            // СТАТУСА ЗДЕСЬ НЕТ.
+            //
+            // Также нет отдельного столбца
+            // "Счет" и "Отгрузки".
             // =================================================
 
             sheet.columns = [
 
                 {
-                    header: 'Дата',
-                    key: 'date',
-                    width: 14
+                    header:
+                        'Дата',
+
+                    key:
+                        'date',
+
+                    width:
+                        8
+
                 },
 
                 {
-                    header: 'Контрагент',
-                    key: 'counterparty',
-                    width: 50
+                    header:
+                        'Контрагент',
+
+                    key:
+                        'counterparty',
+
+                    width:
+                        18
+
                 },
 
                 {
-                    header: 'Водитель',
-                    key: 'driver',
-                    width: 30
+                    header:
+                        'Водитель',
+
+                    key:
+                        'driver',
+
+                    width:
+                        13
+
                 },
 
                 {
-                    header: 'Счет',
-                    key: 'invoice',
-                    width: 15
+                    header:
+                        'Сумма счета',
+
+                    key:
+                        'invoiceSum',
+
+                    width:
+                        10
+
                 },
 
                 {
-                    header: 'Сумма счета',
-                    key: 'invoiceSum',
-                    width: 18
+                    header:
+                        'Сумма отгрузок',
+
+                    key:
+                        'shipmentSum',
+
+                    width:
+                        11
+
                 },
 
                 {
-                    header: 'Сумма отгрузок',
-                    key: 'shipmentSum',
-                    width: 20
+                    header:
+                        '20%',
+
+                    key:
+                        'twentyPercent',
+
+                    width:
+                        8
+
                 },
 
                 {
-                    header: 'Разница',
-                    key: 'difference',
-                    width: 18
-                },
+                    header:
+                        'Разница',
 
-                {
-                    header: 'Отгрузки',
-                    key: 'demands',
-                    width: 45
+                    key:
+                        'difference',
+
+                    width:
+                        10
+
                 }
 
             ];
@@ -786,15 +1012,42 @@ app.post(
             // СТРОКИ
             // =================================================
 
-            for (const row of rows) {
+            for (
+                const row
+                of rows
+            ) {
 
-                const demandsText =
-                    (row.demands || [])
-                        .map(
-                            demand =>
-                                `${demand.number} (${Number(demand.sum || 0).toFixed(2)})`
-                        )
-                        .join(', ');
+                const invoiceSum =
+                    Number(
+                        row.invoiceSum ||
+                        0
+                    );
+
+
+                const shipmentSum =
+                    Number(
+                        row.shipmentSum ||
+                        0
+                    );
+
+
+                // ---------------------------------------------
+                // 20%
+                // ---------------------------------------------
+
+                const twentyPercent =
+                    shipmentSum *
+                    0.20;
+
+
+                // ---------------------------------------------
+                // РАЗНИЦА
+                // ---------------------------------------------
+
+                const difference =
+                    invoiceSum -
+                    shipmentSum -
+                    twentyPercent;
 
 
                 sheet.addRow({
@@ -808,26 +1061,17 @@ app.post(
                     driver:
                         row.driver,
 
-                    invoice:
-                        row.invoice,
-
                     invoiceSum:
-                        Number(
-                            row.invoiceSum || 0
-                        ),
+                        invoiceSum,
 
                     shipmentSum:
-                        Number(
-                            row.shipmentSum || 0
-                        ),
+                        shipmentSum,
+
+                    twentyPercent:
+                        twentyPercent,
 
                     difference:
-                        Number(
-                            row.difference || 0
-                        ),
-
-                    demands:
-                        demandsText
+                        difference
 
                 });
 
@@ -835,31 +1079,124 @@ app.post(
 
 
             // =================================================
-            // ЗАКРЕПИТЬ ПЕРВУЮ СТРОКУ
+            // ИТОГО
             // =================================================
 
-            sheet.views = [
+            const dataLastRow =
+                sheet.rowCount;
 
-                {
-                    state: 'frozen',
 
-                    ySplit: 1
-                }
+            const totalRow =
+                sheet.addRow({
 
-            ];
+                    date:
+                        '',
+
+                    counterparty:
+                        'ИТОГО',
+
+                    driver:
+                        '',
+
+                    invoiceSum:
+                        {
+                            formula:
+                                `SUM(D2:D${dataLastRow})`
+                        },
+
+                    shipmentSum:
+                        {
+                            formula:
+                                `SUM(E2:E${dataLastRow})`
+                        },
+
+                    twentyPercent:
+                        {
+                            formula:
+                                `SUM(F2:F${dataLastRow})`
+                        },
+
+                    difference:
+                        {
+                            formula:
+                                `SUM(G2:G${dataLastRow})`
+                        }
+
+                });
 
 
             // =================================================
-            // ФИЛЬТР
+            // ЗАГОЛОВОК
             // =================================================
 
-            sheet.autoFilter = {
+            const headerRow =
+                sheet.getRow(
+                    1
+                );
 
-                from: 'A1',
 
-                to: 'H1'
+            headerRow.font = {
+
+                bold:
+                    true
 
             };
+
+
+            headerRow.alignment = {
+
+                vertical:
+                    'middle',
+
+                horizontal:
+                    'center',
+
+                wrapText:
+                    true
+
+            };
+
+
+            headerRow.height =
+                28;
+
+
+            // =================================================
+            // ИТОГО
+            // =================================================
+
+            totalRow.font = {
+
+                bold:
+                    true
+
+            };
+
+
+            totalRow.height =
+                24;
+
+
+            for (
+                let col = 1;
+                col <= 7;
+                col++
+            ) {
+
+                totalRow.getCell(
+                    col
+                ).border = {
+
+                    top: {
+
+                        style:
+                            'thin'
+
+                    }
+
+                };
+
+            }
 
 
             // =================================================
@@ -867,97 +1204,197 @@ app.post(
             // =================================================
 
             for (
-                let i = 2;
-                i <= sheet.rowCount;
-                i++
+                let rowNumber = 2;
+                rowNumber <= sheet.rowCount;
+                rowNumber++
             ) {
 
                 sheet.getCell(
-                    `E${i}`
+                    `D${rowNumber}`
                 ).numFmt =
                     '#,##0.00';
 
 
                 sheet.getCell(
-                    `F${i}`
+                    `E${rowNumber}`
                 ).numFmt =
                     '#,##0.00';
 
 
                 sheet.getCell(
-                    `G${i}`
+                    `F${rowNumber}`
                 ).numFmt =
                     '#,##0.00';
 
 
-                const difference =
-                    Number(
-                        sheet.getCell(
-                            `G${i}`
-                        ).value || 0
-                    );
-
-
-                // --------------------------------------------
-                // Положительная разница
-                // --------------------------------------------
-
-                if (
-                    difference > 0
-                ) {
-
-                    sheet.getCell(
-                        `G${i}`
-                    ).fill = {
-
-                        type: 'pattern',
-
-                        pattern: 'solid',
-
-                        fgColor: {
-
-                            argb:
-                                'FFC6EFCE'
-
-                        }
-
-                    };
-
-                }
-
-
-                // --------------------------------------------
-                // Отрицательная разница
-                // --------------------------------------------
-
-                if (
-                    difference < 0
-                ) {
-
-                    sheet.getCell(
-                        `G${i}`
-                    ).fill = {
-
-                        type: 'pattern',
-
-                        pattern: 'solid',
-
-                        fgColor: {
-
-                            argb:
-                                'FFFFC7CE'
-
-                        }
-
-                    };
-
-                }
+                sheet.getCell(
+                    `G${rowNumber}`
+                ).numFmt =
+                    '#,##0.00';
 
             }
 
 
             // =================================================
-            // EXCEL В ПАМЯТЬ
+            // ВЫРАВНИВАНИЕ
+            // =================================================
+
+            for (
+                let rowNumber = 1;
+                rowNumber <= sheet.rowCount;
+                rowNumber++
+            ) {
+
+                const row =
+                    sheet.getRow(
+                        rowNumber
+                    );
+
+
+                row.alignment = {
+
+                    vertical:
+                        'middle',
+
+                    wrapText:
+                        true
+
+                };
+
+            }
+
+
+            // =================================================
+            // АВТОФИЛЬТР
+            //
+            // ИТОГО в фильтр не входит.
+            // =================================================
+
+            sheet.autoFilter = {
+
+                from:
+                    'A1',
+
+                to:
+                    `G${dataLastRow}`
+
+            };
+
+
+            // =================================================
+            // ЗАКРЕПИТЬ ЗАГОЛОВОК
+            // =================================================
+
+            sheet.views = [
+
+                {
+
+                    state:
+                        'frozen',
+
+                    ySplit:
+                        1
+
+                }
+
+            ];
+
+
+            // =================================================
+            // ПЕЧАТЬ
+            //
+            // Все колонки на одну ширину A4.
+            // =================================================
+
+            sheet.pageSetup = {
+
+                paperSize:
+                    sheet.PAPERSIZE_A4,
+
+                orientation:
+                    'landscape',
+
+                fitToPage:
+                    true,
+
+                fitToWidth:
+                    1,
+
+                fitToHeight:
+                    0,
+
+                horizontalDpi:
+                    300,
+
+                verticalDpi:
+                    300,
+
+                margins: {
+
+                    left:
+                        0.15,
+
+                    right:
+                        0.15,
+
+                    top:
+                        0.35,
+
+                    bottom:
+                        0.35,
+
+                    header:
+                        0.1,
+
+                    footer:
+                        0.1
+
+                },
+
+                horizontalCentered:
+                    true
+
+            };
+
+
+            // =================================================
+            // ПОВТОРЯТЬ ЗАГОЛОВОК
+            // =================================================
+
+            sheet.pageSetup.printTitlesRow =
+                '1:1';
+
+
+            // =================================================
+            // ОБЛАСТЬ ПЕЧАТИ
+            // =================================================
+
+            sheet.pageSetup.printArea =
+                `A1:G${sheet.rowCount}`;
+
+
+            // =================================================
+            // КОЛОНТИТУЛ
+            // =================================================
+
+            sheet.headerFooter.oddHeader.center.text =
+                `Отчёт по водителям: ${from} — ${to}`;
+
+
+            sheet.headerFooter.oddHeader.center.size =
+                8;
+
+
+            sheet.headerFooter.oddFooter.center.text =
+                'Страница &P из &N';
+
+
+            sheet.headerFooter.oddFooter.center.size =
+                8;
+
+
+            // =================================================
+            // ФОРМИРУЕМ XLSX
             // =================================================
 
             const buffer =
@@ -988,7 +1425,9 @@ app.post(
             );
 
 
-            res.send(buffer);
+            res.send(
+                buffer
+            );
 
 
         } catch (error) {
@@ -1001,13 +1440,15 @@ app.post(
             );
 
 
-            res.status(500).json({
+            res
+                .status(500)
+                .json({
 
-                error:
-                    error.message ||
-                    'Ошибка создания Excel'
+                    error:
+                        error.message ||
+                        'Ошибка создания Excel'
 
-            });
+                });
 
         }
 
