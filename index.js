@@ -1158,7 +1158,7 @@ app.post(
                         'date',
 
                     width:
-                        8
+                        14
 
                 },
 
@@ -1170,7 +1170,7 @@ app.post(
                         'counterparty',
 
                     width:
-                        18
+                        43
 
                 },
 
@@ -1182,7 +1182,7 @@ app.post(
                         'driver',
 
                     width:
-                        14
+                        21
 
                 },
 
@@ -1206,7 +1206,7 @@ app.post(
                         'shipmentSum',
 
                     width:
-                        12
+                        13
 
                 },
 
@@ -1218,7 +1218,7 @@ app.post(
                         'twentyPercent',
 
                     width:
-                        8
+                        13
 
                 },
 
@@ -1230,7 +1230,7 @@ app.post(
                         'difference',
 
                     width:
-                        11
+                        13
 
                 }
 
