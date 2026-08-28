@@ -43,7 +43,7 @@
 
         .container {
 
-            max-width: 1450px;
+            max-width: 1500px;
 
             margin: 0 auto;
 
@@ -121,7 +121,8 @@
         }
 
 
-        input[type="date"] {
+        input[type="date"],
+        select {
 
             height: 44px;
 
@@ -139,10 +140,13 @@
 
             color: #20242c;
 
+            min-width: 200px;
+
         }
 
 
-        input[type="date"]:focus {
+        input[type="date"]:focus,
+        select:focus {
 
             outline: none;
 
@@ -213,6 +217,24 @@
         }
 
 
+        #resetBtn {
+
+            background: #eef0f4;
+
+            color: #374151;
+
+            display: none;
+
+        }
+
+
+        #resetBtn:hover {
+
+            background: #e2e5ea;
+
+        }
+
+
         button:disabled {
 
             opacity: .6;
@@ -238,7 +260,7 @@
 
 
         /* ====================================================
-           ИТОГ
+           SUMMARY
            ==================================================== */
 
         .summary {
@@ -249,13 +271,17 @@
 
             margin-top: 20px;
 
+            flex-wrap: wrap;
+
         }
 
 
         .summary-item {
 
+            min-width: 180px;
+
             padding:
-                14px 20px;
+                15px 20px;
 
             background: #f5f7fb;
 
@@ -275,11 +301,48 @@
 
         .summary-value {
 
-            margin-top: 4px;
+            margin-top: 5px;
 
-            font-size: 24px;
+            font-size: 22px;
 
             font-weight: 700;
+
+        }
+
+
+        /* ====================================================
+           БЛОК ФИЛЬТРОВ ПО ДАННЫМ
+           ==================================================== */
+
+        .data-filters {
+
+            display: none;
+
+            grid-template-columns:
+                repeat(2, minmax(200px, 1fr));
+
+            gap: 15px;
+
+            margin-top: 25px;
+
+            padding-top: 25px;
+
+            border-top:
+                1px solid #edf0f4;
+
+        }
+
+
+        .filter-title {
+
+            grid-column:
+                1 / -1;
+
+            font-size: 16px;
+
+            font-weight: 700;
+
+            margin-bottom: 2px;
 
         }
 
@@ -302,6 +365,8 @@
             border-collapse: collapse;
 
             font-size: 14px;
+
+            min-width: 1100px;
 
         }
 
@@ -338,6 +403,34 @@
         tbody tr:hover td {
 
             background: #fafafa;
+
+        }
+
+
+        /* ====================================================
+           ИТОГО
+           ==================================================== */
+
+        tfoot td {
+
+            padding:
+                15px 13px;
+
+            border-top:
+                2px solid #cfd4dc;
+
+            background: #f3f4f6;
+
+            font-weight: 700;
+
+            white-space: nowrap;
+
+        }
+
+
+        .total-label {
+
+            font-size: 15px;
 
         }
 
@@ -438,6 +531,7 @@
 
             .field,
             input,
+            select,
             button {
 
                 width: 100%;
@@ -445,9 +539,23 @@
             }
 
 
+            .data-filters {
+
+                grid-template-columns: 1fr;
+
+            }
+
+
             .summary {
 
                 flex-direction: column;
+
+            }
+
+
+            .summary-item {
+
+                width: 100%;
 
             }
 
@@ -474,7 +582,7 @@
 
 
     <!-- ====================================================
-         ФИЛЬТР
+         ОСНОВНОЙ ФИЛЬТР ПЕРИОДА
          ==================================================== -->
 
     <div class="card">
@@ -521,7 +629,9 @@
                 id="loadBtn"
                 onclick="loadReport()"
             >
+
                 Получить отчёт
+
             </button>
 
 
@@ -531,14 +641,94 @@
                 id="excelBtn"
                 onclick="downloadExcel()"
             >
+
                 Скачать Excel
+
+            </button>
+
+
+            <!-- Сбросить фильтры -->
+
+            <button
+                id="resetBtn"
+                onclick="resetFilters()"
+            >
+
+                Сбросить фильтры
+
             </button>
 
 
         </div>
 
 
-        <!-- Статус -->
+        <!-- =================================================
+             ФИЛЬТРЫ КОНТРАГЕНТ / ВОДИТЕЛЬ
+             ================================================= -->
+
+        <div
+            class="data-filters"
+            id="dataFilters"
+        >
+
+
+            <div class="filter-title">
+
+                Фильтр отчёта
+
+            </div>
+
+
+            <!-- Контрагент -->
+
+            <div class="field">
+
+                <label>
+                    Контрагент
+                </label>
+
+                <select
+                    id="counterpartyFilter"
+                    onchange="applyFilters()"
+                >
+
+                    <option value="">
+                        Все контрагенты
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- Водитель -->
+
+            <div class="field">
+
+                <label>
+                    Водитель
+                </label>
+
+                <select
+                    id="driverFilter"
+                    onchange="applyFilters()"
+                >
+
+                    <option value="">
+                        Все водители
+                    </option>
+
+                </select>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- =================================================
+             СТАТУС
+             ================================================= -->
 
         <div
             class="status"
@@ -546,27 +736,95 @@
         ></div>
 
 
-        <!-- Итог -->
+        <!-- =================================================
+             ИТОГОВЫЕ ПОКАЗАТЕЛИ
+             ================================================= -->
 
         <div
             class="summary"
             id="summary"
         >
 
+
             <div class="summary-item">
 
                 <div class="summary-title">
-                    Строк отчёта
+
+                    Строк
+
                 </div>
 
                 <div
                     class="summary-value"
                     id="count"
                 >
+
                     0
+
                 </div>
 
             </div>
+
+
+            <div class="summary-item">
+
+                <div class="summary-title">
+
+                    Сумма счета
+
+                </div>
+
+                <div
+                    class="summary-value"
+                    id="totalInvoice"
+                >
+
+                    0,00 ₽
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-item">
+
+                <div class="summary-title">
+
+                    Сумма отгрузок
+
+                </div>
+
+                <div
+                    class="summary-value"
+                    id="totalShipment"
+                >
+
+                    0,00 ₽
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-item">
+
+                <div class="summary-title">
+
+                    Разница
+
+                </div>
+
+                <div
+                    class="summary-value"
+                    id="totalDifference"
+                >
+
+                    0,00 ₽
+
+                </div>
+
+            </div>
+
 
         </div>
 
@@ -628,7 +886,9 @@
                 </thead>
 
 
-                <tbody id="tableBody">
+                <tbody
+                    id="tableBody"
+                >
 
 
                     <tr>
@@ -649,6 +909,63 @@
                 </tbody>
 
 
+                <!-- =================================================
+                     ИТОГО
+                     ================================================= -->
+
+                <tfoot
+                    id="tableFooter"
+                    style="display:none"
+                >
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="total-label"
+                        >
+
+                            ИТОГО
+
+                        </td>
+
+
+                        <td
+                            id="footerInvoice"
+                        >
+
+                            0,00 ₽
+
+                        </td>
+
+
+                        <td
+                            id="footerShipment"
+                        >
+
+                            0,00 ₽
+
+                        </td>
+
+
+                        <td
+                            id="footerDifference"
+                        >
+
+                            0,00 ₽
+
+                        </td>
+
+
+                        <td>
+
+                        </td>
+
+                    </tr>
+
+                </tfoot>
+
+
             </table>
 
 
@@ -665,20 +982,15 @@
 
 
 // ============================================================
-// ТЕКУЩИЙ ПОЛУЧЕННЫЙ ОТЧЁТ
-//
-// ВАЖНО:
-//
-// После получения отчёта данные остаются
-// в браузере.
-//
-// При скачивании Excel они отправляются
-// на сервер.
-//
-// МойСклад повторно НЕ вызывается.
+// ДАННЫЕ
 // ============================================================
 
+// Полный отчёт, полученный от сервера
 let currentReport = [];
+
+
+// Отфильтрованный отчёт
+let filteredReport = [];
 
 
 // ============================================================
@@ -697,6 +1009,9 @@ const loadBtn =
 const excelBtn =
     document.getElementById('excelBtn');
 
+const resetBtn =
+    document.getElementById('resetBtn');
+
 const status =
     document.getElementById('status');
 
@@ -706,12 +1021,46 @@ const summary =
 const count =
     document.getElementById('count');
 
+const totalInvoice =
+    document.getElementById('totalInvoice');
+
+const totalShipment =
+    document.getElementById('totalShipment');
+
+const totalDifference =
+    document.getElementById('totalDifference');
+
 const tableBody =
     document.getElementById('tableBody');
 
+const tableFooter =
+    document.getElementById('tableFooter');
+
+const footerInvoice =
+    document.getElementById('footerInvoice');
+
+const footerShipment =
+    document.getElementById('footerShipment');
+
+const footerDifference =
+    document.getElementById('footerDifference');
+
+const dataFilters =
+    document.getElementById('dataFilters');
+
+const counterpartyFilter =
+    document.getElementById(
+        'counterpartyFilter'
+    );
+
+const driverFilter =
+    document.getElementById(
+        'driverFilter'
+    );
+
 
 // ============================================================
-// СЕГОДНЯ
+// ДАТА СЕГОДНЯ
 // ============================================================
 
 const today =
@@ -767,7 +1116,7 @@ async function loadReport() {
 
 
     // --------------------------------------------------------
-    // Проверка
+    // Проверки
     // --------------------------------------------------------
 
     if (!from || !to) {
@@ -793,18 +1142,12 @@ async function loadReport() {
 
 
     // --------------------------------------------------------
-    // Сбрасываем старые данные
+    // Сбрасываем предыдущий отчёт
     // --------------------------------------------------------
 
     currentReport = [];
 
-
-    excelBtn.style.display =
-        'none';
-
-
-    summary.style.display =
-        'none';
+    filteredReport = [];
 
 
     // --------------------------------------------------------
@@ -813,6 +1156,21 @@ async function loadReport() {
 
     loadBtn.disabled =
         true;
+
+    excelBtn.style.display =
+        'none';
+
+    resetBtn.style.display =
+        'none';
+
+    dataFilters.style.display =
+        'none';
+
+    summary.style.display =
+        'none';
+
+    tableFooter.style.display =
+        'none';
 
 
     loadBtn.innerHTML =
@@ -874,37 +1232,54 @@ async function loadReport() {
 
 
         // ====================================================
-        // СОХРАНЯЕМ ОТЧЁТ
+        // СОХРАНЯЕМ ПОЛНЫЙ ОТЧЁТ
         // ====================================================
 
         currentReport =
             data.rows || [];
 
 
+        // Изначально показываем всё
+        filteredReport =
+            [...currentReport];
+
+
         // ====================================================
-        // ПОКАЗЫВАЕМ
+        // СОЗДАЁМ СПИСКИ ФИЛЬТРОВ
+        // ====================================================
+
+        buildFilters();
+
+
+        // ====================================================
+        // ПОКАЗЫВАЕМ ФИЛЬТРЫ
+        // ====================================================
+
+        dataFilters.style.display =
+            'grid';
+
+
+        // ====================================================
+        // ПОКАЗЫВАЕМ ОТЧЁТ
         // ====================================================
 
         renderReport(
-            currentReport
+            filteredReport
         );
 
 
-        count.textContent =
-            currentReport.length;
-
-
-        summary.style.display =
-            'flex';
-
-
         // ====================================================
-        // КНОПКА EXCEL
+        // КНОПКИ
         // ====================================================
 
-        if (currentReport.length > 0) {
+        if (
+            currentReport.length > 0
+        ) {
 
             excelBtn.style.display =
+                'inline-block';
+
+            resetBtn.style.display =
                 'inline-block';
 
         }
@@ -924,6 +1299,8 @@ async function loadReport() {
 
         currentReport = [];
 
+        filteredReport = [];
+
 
         tableBody.innerHTML = `
 
@@ -935,7 +1312,10 @@ async function loadReport() {
                 >
 
                     Ошибка:
-                    ${escapeHtml(error.message)}
+
+                    ${escapeHtml(
+                        error.message
+                    )}
 
                 </td>
 
@@ -964,24 +1344,644 @@ async function loadReport() {
 
 
 // ============================================================
+// СОЗДАТЬ ФИЛЬТРЫ
+// ============================================================
+
+function buildFilters() {
+
+
+    // --------------------------------------------------------
+    // Контрагенты
+    // --------------------------------------------------------
+
+    const counterparties =
+
+        [
+            ...new Set(
+
+                currentReport
+                    .map(
+                        row =>
+                            row.counterparty
+                    )
+                    .filter(Boolean)
+
+            )
+        ]
+
+        .sort(
+            (a, b) =>
+                a.localeCompare(
+                    b,
+                    'ru'
+                )
+        );
+
+
+    counterpartyFilter.innerHTML = `
+
+        <option value="">
+            Все контрагенты
+        </option>
+
+    `;
+
+
+    for (
+        const counterparty
+        of counterparties
+    ) {
+
+        const option =
+            document.createElement(
+                'option'
+            );
+
+
+        option.value =
+            counterparty;
+
+
+        option.textContent =
+            counterparty;
+
+
+        counterpartyFilter.appendChild(
+            option
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Водители
+    // --------------------------------------------------------
+
+    const drivers =
+        new Set();
+
+
+    for (
+        const row
+        of currentReport
+    ) {
+
+        const driverString =
+            String(
+                row.driver || ''
+            );
+
+
+        driverString
+            .split(',')
+            .map(
+                driver =>
+                    driver.trim()
+            )
+            .filter(Boolean)
+            .forEach(
+                driver =>
+                    drivers.add(driver)
+            );
+
+    }
+
+
+    const sortedDrivers =
+        [...drivers]
+            .sort(
+                (a, b) =>
+                    a.localeCompare(
+                        b,
+                        'ru'
+                    )
+            );
+
+
+    driverFilter.innerHTML = `
+
+        <option value="">
+            Все водители
+        </option>
+
+    `;
+
+
+    for (
+        const driver
+        of sortedDrivers
+    ) {
+
+        const option =
+            document.createElement(
+                'option'
+            );
+
+
+        option.value =
+            driver;
+
+
+        option.textContent =
+            driver;
+
+
+        driverFilter.appendChild(
+            option
+        );
+
+    }
+
+}
+
+
+// ============================================================
+// ПРИМЕНИТЬ ФИЛЬТРЫ
+// ============================================================
+
+function applyFilters() {
+
+
+    const selectedCounterparty =
+        counterpartyFilter.value;
+
+
+    const selectedDriver =
+        driverFilter.value;
+
+
+    // --------------------------------------------------------
+    // Фильтруем исходный отчёт
+    // --------------------------------------------------------
+
+    filteredReport =
+        currentReport.filter(
+            row => {
+
+
+                // --------------------------------------------
+                // Контрагент
+                // --------------------------------------------
+
+                const counterpartyOk =
+
+                    !selectedCounterparty ||
+
+                    row.counterparty ===
+                        selectedCounterparty;
+
+
+                // --------------------------------------------
+                // Водитель
+                //
+                // Используем includes,
+                // потому что в строке может быть
+                // несколько водителей.
+                // --------------------------------------------
+
+                const driverOk =
+
+                    !selectedDriver ||
+
+                    String(
+                        row.driver || ''
+                    )
+                    .split(',')
+                    .map(
+                        d => d.trim()
+                    )
+                    .includes(
+                        selectedDriver
+                    );
+
+
+                return (
+                    counterpartyOk &&
+                    driverOk
+                );
+
+            }
+        );
+
+
+    // --------------------------------------------------------
+    // Перерисовываем
+    // --------------------------------------------------------
+
+    renderReport(
+        filteredReport
+    );
+
+
+    // --------------------------------------------------------
+    // Статус
+    // --------------------------------------------------------
+
+    const total =
+        currentReport.length;
+
+    const visible =
+        filteredReport.length;
+
+
+    status.textContent =
+        `Показано ${visible} из ${total} строк`;
+
+
+}
+
+
+// ============================================================
+// СБРОСИТЬ ФИЛЬТРЫ
+// ============================================================
+
+function resetFilters() {
+
+
+    counterpartyFilter.value =
+        '';
+
+    driverFilter.value =
+        '';
+
+
+    filteredReport =
+        [...currentReport];
+
+
+    renderReport(
+        filteredReport
+    );
+
+
+    status.textContent =
+        `Показано ${currentReport.length} строк`;
+
+}
+
+
+// ============================================================
+// ОТОБРАЗИТЬ ОТЧЁТ
+// ============================================================
+
+function renderReport(rows) {
+
+
+    // ========================================================
+    // ПУСТО
+    // ========================================================
+
+    if (!rows.length) {
+
+
+        tableBody.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    class="empty"
+                >
+
+                    По выбранным фильтрам
+                    данных нет
+
+                </td>
+
+            </tr>
+
+        `;
+
+
+        // Сбрасываем итоги
+
+        updateTotals([]);
+
+
+        tableFooter.style.display =
+            'none';
+
+
+        return;
+
+    }
+
+
+    // ========================================================
+    // ТАБЛИЦА
+    // ========================================================
+
+    tableBody.innerHTML =
+
+        rows
+            .map(
+                row => {
+
+
+                    const difference =
+                        Number(
+                            row.difference || 0
+                        );
+
+
+                    let differenceClass =
+                        '';
+
+
+                    if (
+                        difference > 0
+                    ) {
+
+                        differenceClass =
+                            'positive';
+
+                    }
+
+
+                    if (
+                        difference < 0
+                    ) {
+
+                        differenceClass =
+                            'negative';
+
+                    }
+
+
+                    // ----------------------------------------
+                    // Отгрузки
+                    // ----------------------------------------
+
+                    const demands =
+                        (row.demands || [])
+                            .map(
+                                demand => `
+
+                                    <div>
+
+                                        ${escapeHtml(
+                                            demand.number
+                                        )}
+
+                                        —
+
+                                        ${formatMoney(
+                                            demand.sum
+                                        )}
+
+                                    </div>
+
+                                `
+                            )
+                            .join('');
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+
+                                ${formatDate(
+                                    row.date
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    row.counterparty
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    row.driver
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${escapeHtml(
+                                    row.invoice
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${formatMoney(
+                                    row.invoiceSum
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${formatMoney(
+                                    row.shipmentSum
+                                )}
+
+                            </td>
+
+
+                            <td
+                                class="${differenceClass}"
+                            >
+
+                                ${formatMoney(
+                                    difference
+                                )}
+
+                            </td>
+
+
+                            <td>
+
+                                ${demands}
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+            )
+            .join('');
+
+
+    // ========================================================
+    // ИТОГИ
+    // ========================================================
+
+    updateTotals(
+        rows
+    );
+
+
+    tableFooter.style.display =
+        'table-footer-group';
+
+}
+
+
+// ============================================================
+// ПОСЧИТАТЬ ИТОГИ
+// ============================================================
+
+function updateTotals(rows) {
+
+
+    let invoiceTotal =
+        0;
+
+
+    let shipmentTotal =
+        0;
+
+
+    let differenceTotal =
+        0;
+
+
+    for (
+        const row
+        of rows
+    ) {
+
+        invoiceTotal +=
+            Number(
+                row.invoiceSum || 0
+            );
+
+
+        shipmentTotal +=
+            Number(
+                row.shipmentSum || 0
+            );
+
+
+        differenceTotal +=
+            Number(
+                row.difference || 0
+            );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Summary сверху
+    // --------------------------------------------------------
+
+    count.textContent =
+        rows.length;
+
+
+    totalInvoice.textContent =
+        formatMoney(
+            invoiceTotal
+        );
+
+
+    totalShipment.textContent =
+        formatMoney(
+            shipmentTotal
+        );
+
+
+    totalDifference.textContent =
+        formatMoney(
+            differenceTotal
+        );
+
+
+    summary.style.display =
+        'flex';
+
+
+    // --------------------------------------------------------
+    // ИТОГО под таблицей
+    // --------------------------------------------------------
+
+    footerInvoice.textContent =
+        formatMoney(
+            invoiceTotal
+        );
+
+
+    footerShipment.textContent =
+        formatMoney(
+            shipmentTotal
+        );
+
+
+    footerDifference.textContent =
+        formatMoney(
+            differenceTotal
+        );
+
+
+    // --------------------------------------------------------
+    // Цвет разницы
+    // --------------------------------------------------------
+
+    footerDifference.className =
+        '';
+
+
+    if (
+        differenceTotal > 0
+    ) {
+
+        footerDifference.className =
+            'positive';
+
+    }
+
+
+    if (
+        differenceTotal < 0
+    ) {
+
+        footerDifference.className =
+            'negative';
+
+    }
+
+}
+
+
+// ============================================================
 // СКАЧАТЬ EXCEL
 //
 // ВАЖНО:
 //
-// Здесь НЕТ запроса к МойСклад.
+// Отправляем именно filteredReport,
+// а не currentReport.
 //
-// Мы отправляем уже полученный currentReport.
+// Поэтому Excel содержит только
+// выбранные фильтрами строки.
 // ============================================================
 
 async function downloadExcel() {
 
 
     if (
-        !currentReport.length
+        !filteredReport.length
     ) {
 
         alert(
-            'Сначала получите отчёт'
+            'Нет данных для скачивания'
         );
 
         return;
@@ -999,10 +1999,6 @@ async function downloadExcel() {
     try {
 
 
-        // ----------------------------------------------------
-        // UI
-        // ----------------------------------------------------
-
         excelBtn.disabled =
             true;
 
@@ -1012,7 +2008,7 @@ async function downloadExcel() {
 
 
         // ====================================================
-        // ОТПРАВЛЯЕМ ГОТОВЫЕ ДАННЫЕ
+        // POST
         // ====================================================
 
         const response =
@@ -1038,7 +2034,7 @@ async function downloadExcel() {
                             to,
 
                             rows:
-                                currentReport
+                                filteredReport
 
                         })
 
@@ -1047,10 +2043,11 @@ async function downloadExcel() {
 
 
         // ====================================================
-        // ОШИБКА
+        // Ошибка
         // ====================================================
 
         if (!response.ok) {
+
 
             let errorData;
 
@@ -1077,7 +2074,7 @@ async function downloadExcel() {
 
 
         // ====================================================
-        // ПОЛУЧАЕМ ФАЙЛ
+        // Получаем Excel
         // ====================================================
 
         const blob =
@@ -1085,7 +2082,7 @@ async function downloadExcel() {
 
 
         // ====================================================
-        // СОЗДАЁМ ССЫЛКУ
+        // Скачивание
         // ====================================================
 
         const url =
@@ -1095,7 +2092,9 @@ async function downloadExcel() {
 
 
         const a =
-            document.createElement('a');
+            document.createElement(
+                'a'
+            );
 
 
         a.href =
@@ -1106,7 +2105,9 @@ async function downloadExcel() {
             `driver-report-${from}-${to}.xlsx`;
 
 
-        document.body.appendChild(a);
+        document.body.appendChild(
+            a
+        );
 
 
         a.click();
@@ -1150,199 +2151,24 @@ async function downloadExcel() {
 
 
 // ============================================================
-// ОТОБРАЗИТЬ ТАБЛИЦУ
-// ============================================================
-
-function renderReport(rows) {
-
-
-    if (!rows.length) {
-
-        tableBody.innerHTML = `
-
-            <tr>
-
-                <td
-                    colspan="8"
-                    class="empty"
-                >
-
-                    За выбранный период
-                    данных нет
-
-                </td>
-
-            </tr>
-
-        `;
-
-        return;
-
-    }
-
-
-    tableBody.innerHTML =
-
-        rows
-            .map(row => {
-
-
-                const difference =
-                    Number(
-                        row.difference || 0
-                    );
-
-
-                let differenceClass =
-                    '';
-
-
-                if (
-                    difference > 0
-                ) {
-
-                    differenceClass =
-                        'positive';
-
-                }
-
-
-                if (
-                    difference < 0
-                ) {
-
-                    differenceClass =
-                        'negative';
-
-                }
-
-
-                // --------------------------------------------
-                // Отгрузки
-                // --------------------------------------------
-
-                const demands =
-                    (row.demands || [])
-                        .map(
-                            demand => `
-
-                                <div>
-
-                                    ${escapeHtml(
-                                        demand.number
-                                    )}
-
-                                    —
-
-                                    ${formatMoney(
-                                        demand.sum
-                                    )}
-
-                                </div>
-
-                            `
-                        )
-                        .join('');
-
-
-                // --------------------------------------------
-                // Строка
-                // --------------------------------------------
-
-                return `
-
-                    <tr>
-
-                        <td>
-
-                            ${formatDate(
-                                row.date
-                            )}
-
-                        </td>
-
-
-                        <td>
-
-                            ${escapeHtml(
-                                row.counterparty
-                            )}
-
-                        </td>
-
-
-                        <td>
-
-                            ${escapeHtml(
-                                row.driver
-                            )}
-
-                        </td>
-
-
-                        <td>
-
-                            ${escapeHtml(
-                                row.invoice
-                            )}
-
-                        </td>
-
-
-                        <td>
-
-                            ${formatMoney(
-                                row.invoiceSum
-                            )}
-
-                        </td>
-
-
-                        <td>
-
-                            ${formatMoney(
-                                row.shipmentSum
-                            )}
-
-                        </td>
-
-
-                        <td
-                            class="${differenceClass}"
-                        >
-
-                            ${formatMoney(
-                                difference
-                            )}
-
-                        </td>
-
-
-                        <td>
-
-                            ${demands}
-
-                        </td>
-
-                    </tr>
-
-                `;
-
-            })
-            .join('');
-
-}
-
-
-// ============================================================
 // ФОРМАТ ДЕНЕГ
 // ============================================================
 
 function formatMoney(value) {
 
-    return Number(
-        value || 0
-    )
+
+    const number =
+        Number(value || 0);
+
+
+    if (!Number.isFinite(number)) {
+
+        return '0,00 ₽';
+
+    }
+
+
+    return number
         .toLocaleString(
             'ru-RU',
             {
@@ -1367,12 +2193,15 @@ function formatDate(value) {
 
 
     if (!value) {
+
         return '';
+
     }
 
 
     const parts =
-        String(value).split('-');
+        String(value)
+            .split('-');
 
 
     if (
@@ -1385,18 +2214,20 @@ function formatDate(value) {
 
 
     return (
+
         parts[2] +
         '.' +
         parts[1] +
         '.' +
         parts[0]
+
     );
 
 }
 
 
 // ============================================================
-// ПОЛУЧИТЬ ТЕКСТ ОШИБКИ
+// ТЕКСТ ОШИБКИ
 // ============================================================
 
 function extractError(data) {
@@ -1459,30 +2290,36 @@ function extractError(data) {
 
 
 // ============================================================
-// ЭКРАНИРОВАНИЕ HTML
+// HTML ESCAPE
 // ============================================================
 
 function escapeHtml(value) {
 
+
     return String(
         value ?? ''
     )
+
         .replace(
             /&/g,
             '&amp;'
         )
+
         .replace(
             /</g,
             '&lt;'
         )
+
         .replace(
             />/g,
             '&gt;'
         )
+
         .replace(
             /"/g,
             '&quot;'
         )
+
         .replace(
             /'/g,
             '&#039;'
