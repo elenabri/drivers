@@ -775,9 +775,9 @@ async function buildDriverReport(
         // ====================================================
 
         const difference =
-            invoiceSum -
-            shipmentSum -
-            twentyPercent;
+    shipmentSum -
+    twentyPercent -
+    invoiceSum;
 
 
         // ====================================================
@@ -1272,9 +1272,9 @@ app.post(
                 // ------------------------------------------------
 
                 const difference =
-                    invoiceSum -
-                    shipmentSum -
-                    twentyPercent;
+    shipmentSum -
+    twentyPercent -
+    invoiceSum;
 
 
                 sheet.addRow({
