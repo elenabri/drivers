@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 
@@ -551,6 +552,29 @@
 
 
         /* ====================================================
+           ОТГРУЗКИ
+           ==================================================== */
+
+        .demand-item {
+
+            margin-bottom:
+                4px;
+
+            white-space:
+                nowrap;
+
+        }
+
+
+        .demand-item:last-child {
+
+            margin-bottom:
+                0;
+
+        }
+
+
+        /* ====================================================
            LOADER
            ==================================================== */
 
@@ -829,7 +853,7 @@
             </div>
 
 
-            <!-- Статус счета -->
+            <!-- Статус -->
 
             <div class="field">
 
@@ -855,7 +879,7 @@
 
 
         <!-- =================================================
-             СТАТУС ЗАГРУЗКИ
+             СТАТУС
              ================================================= -->
 
         <div
@@ -1317,7 +1341,6 @@ toInput.value =
 
 async function loadReport() {
 
-
     const from =
         fromInput.value;
 
@@ -1410,7 +1433,6 @@ async function loadReport() {
 
     try {
 
-
         const url =
             `/api/driver-report?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
 
@@ -1439,7 +1461,11 @@ async function loadReport() {
 
 
         currentReport =
-            data.rows || [];
+            Array.isArray(
+                data.rows
+            )
+                ? data.rows
+                : [];
 
 
         filteredReport =
@@ -1480,7 +1506,6 @@ async function loadReport() {
 
     } catch (error) {
 
-
         console.error(
             error
         );
@@ -1519,7 +1544,6 @@ async function loadReport() {
 
     } finally {
 
-
         loadBtn.disabled =
             false;
 
@@ -1538,26 +1562,21 @@ async function loadReport() {
 
 function buildFilters() {
 
-
     // ========================================================
     // КОНТРАГЕНТЫ
     // ========================================================
 
     const counterparties =
-
         [
             ...new Set(
-
                 currentReport
                     .map(
                         row =>
                             row.counterparty
                     )
                     .filter(Boolean)
-
             )
         ]
-
         .sort(
             (a, b) =>
                 a.localeCompare(
@@ -1604,6 +1623,11 @@ function buildFilters() {
 
     // ========================================================
     // ВОДИТЕЛИ
+    //
+    // ВАЖНО:
+    //
+    // Берём водителей непосредственно из demands,
+    // а не только из row.driver.
     // ========================================================
 
     const drivers =
@@ -1615,25 +1639,57 @@ function buildFilters() {
         of currentReport
     ) {
 
-        String(
-            row.driver || ''
-        )
-
-            .split(',')
-
-            .map(
-                driver =>
-                    driver.trim()
+        const demands =
+            Array.isArray(
+                row.demands
             )
+                ? row.demands
+                : [];
 
-            .filter(Boolean)
 
-            .forEach(
-                driver =>
-                    drivers.add(
-                        driver
-                    )
-            );
+        for (
+            const demand
+            of demands
+        ) {
+
+            if (
+                demand.driver
+            ) {
+
+                drivers.add(
+                    demand.driver.trim()
+                );
+
+            }
+
+        }
+
+
+        // На случай старых данных,
+        // где demands отсутствует.
+
+        if (
+            !demands.length &&
+            row.driver
+        ) {
+
+            String(
+                row.driver
+            )
+                .split(',')
+                .map(
+                    value =>
+                        value.trim()
+                )
+                .filter(Boolean)
+                .forEach(
+                    value =>
+                        drivers.add(
+                            value
+                        )
+                );
+
+        }
 
     }
 
@@ -1642,14 +1698,13 @@ function buildFilters() {
         [
             ...drivers
         ]
-
-            .sort(
-                (a, b) =>
-                    a.localeCompare(
-                        b,
-                        'ru'
-                    )
-            );
+        .sort(
+            (a, b) =>
+                a.localeCompare(
+                    b,
+                    'ru'
+                )
+        );
 
 
     driverFilter.innerHTML = `
@@ -1688,14 +1743,12 @@ function buildFilters() {
 
 
     // ========================================================
-    // СТАТУСЫ СЧЁТОВ
+    // СТАТУСЫ
     // ========================================================
 
     const statuses =
-
         [
             ...new Set(
-
                 currentReport
                     .map(
                         row =>
@@ -1703,10 +1756,8 @@ function buildFilters() {
                             'Без статуса'
                     )
                     .filter(Boolean)
-
             )
         ]
-
         .sort(
             (a, b) =>
                 a.localeCompare(
@@ -1754,11 +1805,194 @@ function buildFilters() {
 
 
 // ============================================================
+// ПОЛУЧИТЬ ОТГРУЗКИ ДЛЯ КОНКРЕТНОГО ВОДИТЕЛЯ
+// ============================================================
+//
+// Это самая важная часть.
+//
+// Если в счёте:
+//
+// Аничев — 50 000
+// Чепрасов — 30 000
+//
+// и выбран Аничев:
+//
+// возвращаем только:
+//
+// Аничев — 50 000
+//
+// ============================================================
+
+function getFilteredDemands(
+    row,
+    selectedDriver
+) {
+
+    const demands =
+        Array.isArray(
+            row.demands
+        )
+            ? row.demands
+            : [];
+
+
+    // --------------------------------------------------------
+    // Если водитель не выбран —
+    // оставляем все отгрузки.
+    // --------------------------------------------------------
+
+    if (
+        !selectedDriver
+    ) {
+
+        return demands.map(
+            demand => ({
+                ...demand
+            })
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // Оставляем только отгрузки выбранного водителя.
+    // --------------------------------------------------------
+
+    return demands.filter(
+        demand =>
+            String(
+                demand.driver ||
+                ''
+            ).trim() ===
+            selectedDriver
+    );
+
+}
+
+
+// ============================================================
+// СОЗДАТЬ ОТФИЛЬТРОВАННУЮ СТРОКУ
+// ============================================================
+//
+// Здесь пересчитываются:
+//
+// Сумма отгрузок
+// 20%
+// Разница
+//
+// Сумма счета остаётся полной суммой счета.
+// ============================================================
+
+function makeFilteredRow(
+    row,
+    selectedDriver
+) {
+
+    const demands =
+        getFilteredDemands(
+            row,
+            selectedDriver
+        );
+
+
+    // --------------------------------------------------------
+    // Сумма отгрузок только выбранного водителя
+    // --------------------------------------------------------
+
+    const shipmentSum =
+        demands.reduce(
+            (
+                total,
+                demand
+            ) =>
+                total +
+                Number(
+                    demand.sum || 0
+                ),
+            0
+        );
+
+
+    // --------------------------------------------------------
+    // 20%
+    // --------------------------------------------------------
+
+    const twentyPercent =
+        shipmentSum *
+        0.20;
+
+
+    // --------------------------------------------------------
+    // Разница
+    //
+    // Сумма счета
+    // - Сумма отгрузок
+    // - 20%
+    // --------------------------------------------------------
+
+    const invoiceSum =
+        Number(
+            row.invoiceSum || 0
+        );
+
+
+    const difference =
+        invoiceSum -
+        shipmentSum -
+        twentyPercent;
+
+
+    // --------------------------------------------------------
+    // Водитель
+    // --------------------------------------------------------
+
+    const drivers =
+        [
+            ...new Set(
+                demands
+                    .map(
+                        demand =>
+                            demand.driver
+                    )
+                    .filter(Boolean)
+            )
+        ];
+
+
+    return {
+
+        ...row,
+
+        driver:
+            drivers.join(
+                ', '
+            ),
+
+        invoiceSum:
+            invoiceSum,
+
+        shipmentSum:
+            shipmentSum,
+
+        twentyPercent:
+            twentyPercent,
+
+        difference:
+            difference,
+
+        demands:
+            demands
+
+    };
+
+}
+
+
+// ============================================================
 // ПРИМЕНИТЬ ФИЛЬТРЫ
 // ============================================================
 
 function applyFilters() {
-
 
     const selectedCounterparty =
         counterpartyFilter.value;
@@ -1772,72 +2006,99 @@ function applyFilters() {
         statusFilter.value;
 
 
-    filteredReport =
-        currentReport.filter(
-            row => {
+    const result = [];
 
 
-                // --------------------------------------------
-                // Контрагент
-                // --------------------------------------------
+    // ========================================================
+    // СНАЧАЛА ФИЛЬТРУЕМ СЧЕТА
+    // ========================================================
 
-                const counterpartyOk =
+    for (
+        const row
+        of currentReport
+    ) {
 
-                    !selectedCounterparty ||
+        // ----------------------------------------------------
+        // Контрагент
+        // ----------------------------------------------------
 
-                    row.counterparty ===
-                    selectedCounterparty;
+        if (
+            selectedCounterparty &&
+            row.counterparty !==
+            selectedCounterparty
+        ) {
 
+            continue;
 
-                // --------------------------------------------
-                // Водитель
-                // --------------------------------------------
-
-                const driverOk =
-
-                    !selectedDriver ||
-
-                    String(
-                        row.driver || ''
-                    )
-
-                        .split(',')
-
-                        .map(
-                            driver =>
-                                driver.trim()
-                        )
-
-                        .includes(
-                            selectedDriver
-                        );
+        }
 
 
-                // --------------------------------------------
-                // Статус
-                // --------------------------------------------
+        // ----------------------------------------------------
+        // Статус
+        // ----------------------------------------------------
 
-                const rowStatus =
-                    row.status ||
-                    'Без статуса';
-
-
-                const statusOk =
-
-                    !selectedStatus ||
-
-                    rowStatus ===
-                    selectedStatus;
+        const rowStatus =
+            row.status ||
+            'Без статуса';
 
 
-                return (
-                    counterpartyOk &&
-                    driverOk &&
-                    statusOk
-                );
+        if (
+            selectedStatus &&
+            rowStatus !==
+            selectedStatus
+        ) {
 
-            }
+            continue;
+
+        }
+
+
+        // ----------------------------------------------------
+        // Отбираем отгрузки выбранного водителя
+        // ----------------------------------------------------
+
+        const filteredDemands =
+            getFilteredDemands(
+                row,
+                selectedDriver
+            );
+
+
+        // ----------------------------------------------------
+        // Если водитель выбран, но у счета
+        // нет его отгрузки — этот счет не показываем.
+        // ----------------------------------------------------
+
+        if (
+            selectedDriver &&
+            filteredDemands.length === 0
+        ) {
+
+            continue;
+
+        }
+
+
+        // ----------------------------------------------------
+        // Создаём пересчитанную строку.
+        // ----------------------------------------------------
+
+        const filteredRow =
+            makeFilteredRow(
+                row,
+                selectedDriver
+            );
+
+
+        result.push(
+            filteredRow
         );
+
+    }
+
+
+    filteredReport =
+        result;
 
 
     renderReport(
@@ -1857,7 +2118,6 @@ function applyFilters() {
 
 function resetFilters() {
 
-
     counterpartyFilter.value =
         '';
 
@@ -1871,9 +2131,13 @@ function resetFilters() {
 
 
     filteredReport =
-        [
-            ...currentReport
-        ];
+        currentReport.map(
+            row =>
+                makeFilteredRow(
+                    row,
+                    ''
+                )
+        );
 
 
     renderReport(
@@ -1891,8 +2155,9 @@ function resetFilters() {
 // ОТОБРАЗИТЬ ОТЧЁТ
 // ============================================================
 
-function renderReport(rows) {
-
+function renderReport(
+    rows
+) {
 
     if (
         !rows.length
@@ -1953,23 +2218,13 @@ function renderReport(rows) {
 
 
                     // ----------------------------------------
-                    // 20%
+                    // Всегда пересчитываем
                     // ----------------------------------------
 
                     const twentyPercent =
                         shipmentSum *
                         0.20;
 
-
-                    // ----------------------------------------
-                    // РАЗНИЦА
-                    //
-                    // Сумма счета
-                    // -
-                    // Сумма отгрузок
-                    // -
-                    // 20%
-                    // ----------------------------------------
 
                     const difference =
                         invoiceSum -
@@ -2003,6 +2258,9 @@ function renderReport(rows) {
 
                     // ----------------------------------------
                     // Отгрузки
+                    //
+                    // Здесь будут только отгрузки
+                    // выбранного водителя.
                     // ----------------------------------------
 
                     const demands =
@@ -2010,14 +2268,16 @@ function renderReport(rows) {
                             row.demands ||
                             []
                         )
-
                             .map(
                                 demand => `
 
-                                    <div>
+                                    <div
+                                        class="demand-item"
+                                    >
 
                                         ${escapeHtml(
-                                            demand.number
+                                            demand.number ||
+                                            ''
                                         )}
 
                                         —
@@ -2030,7 +2290,6 @@ function renderReport(rows) {
 
                                 `
                             )
-
                             .join('');
 
 
@@ -2148,7 +2407,6 @@ function renderReport(rows) {
 
                 }
             )
-
             .join('');
 
 
@@ -2167,8 +2425,9 @@ function renderReport(rows) {
 // ИТОГИ
 // ============================================================
 
-function updateTotals(rows) {
-
+function updateTotals(
+    rows
+) {
 
     let invoiceTotal =
         0;
@@ -2235,7 +2494,7 @@ function updateTotals(rows) {
 
 
     // ========================================================
-    // ИТОГИ СВЕРХУ
+    // ВЕРХНИЕ ИТОГИ
     // ========================================================
 
     count.textContent =
@@ -2271,7 +2530,7 @@ function updateTotals(rows) {
 
 
     // ========================================================
-    // ИТОГО ПОД ТАБЛИЦЕЙ
+    // ИТОГИ ПОД ТАБЛИЦЕЙ
     // ========================================================
 
     footerInvoice.textContent =
@@ -2330,16 +2589,15 @@ function updateTotals(rows) {
 //
 // ВАЖНО:
 //
-// Передаём filteredReport.
+// Отправляем filteredReport,
+// а не currentReport.
 //
-// Поэтому Excel содержит именно текущий
-// отфильтрованный список.
+// Поэтому Excel содержит именно
+// текущий отфильтрованный список.
 //
-// Статус счета НЕ передаётся отдельно.
 // ============================================================
 
 async function downloadExcel() {
-
 
     if (
         !filteredReport.length
@@ -2364,13 +2622,69 @@ async function downloadExcel() {
 
     try {
 
-
         excelBtn.disabled =
             true;
 
 
         excelBtn.textContent =
             'Формируем Excel...';
+
+
+        // ----------------------------------------------------
+        // ВАЖНО:
+        //
+        // filteredReport уже содержит:
+        //
+        // только выбранного водителя;
+        // только его отгрузки;
+        // пересчитанную сумму;
+        // пересчитанные 20%;
+        // пересчитанную разницу.
+        // ----------------------------------------------------
+
+        const rowsForExcel =
+            filteredReport.map(
+                row => ({
+
+                    date:
+                        row.date || '',
+
+                    counterparty:
+                        row.counterparty || '',
+
+                    driver:
+                        row.driver || '',
+
+                    invoiceSum:
+                        Number(
+                            row.invoiceSum || 0
+                        ),
+
+                    shipmentSum:
+                        Number(
+                            row.shipmentSum || 0
+                        ),
+
+                    twentyPercent:
+                        Number(
+                            row.shipmentSum || 0
+                        ) * 0.20,
+
+                    difference:
+                        Number(
+                            row.invoiceSum || 0
+                        ) -
+                        Number(
+                            row.shipmentSum || 0
+                        ) -
+                        (
+                            Number(
+                                row.shipmentSum || 0
+                            ) * 0.20
+                        )
+
+                })
+            );
 
 
         const response =
@@ -2398,7 +2712,7 @@ async function downloadExcel() {
                                 to,
 
                             rows:
-                                filteredReport
+                                rowsForExcel
 
                         })
 
@@ -2409,7 +2723,6 @@ async function downloadExcel() {
         if (
             !response.ok
         ) {
-
 
             let errorData;
 
@@ -2478,7 +2791,6 @@ async function downloadExcel() {
 
     } catch (error) {
 
-
         console.error(
             error
         );
@@ -2491,7 +2803,6 @@ async function downloadExcel() {
 
 
     } finally {
-
 
         excelBtn.disabled =
             false;
@@ -2509,8 +2820,9 @@ async function downloadExcel() {
 // ФОРМАТ ДЕНЕГ
 // ============================================================
 
-function formatMoney(value) {
-
+function formatMoney(
+    value
+) {
 
     const number =
         Number(
@@ -2519,7 +2831,9 @@ function formatMoney(value) {
 
 
     if (
-        !Number.isFinite(number)
+        !Number.isFinite(
+            number
+        )
     ) {
 
         return '0,00 ₽';
@@ -2529,19 +2843,18 @@ function formatMoney(value) {
 
     return (
 
-        number
-            .toLocaleString(
-                'ru-RU',
-                {
+        number.toLocaleString(
+            'ru-RU',
+            {
 
-                    minimumFractionDigits:
-                        2,
+                minimumFractionDigits:
+                    2,
 
-                    maximumFractionDigits:
-                        2
+                maximumFractionDigits:
+                    2
 
-                }
-            )
+            }
+        )
 
         +
 
@@ -2556,8 +2869,9 @@ function formatMoney(value) {
 // ФОРМАТ ДАТЫ
 // ============================================================
 
-function formatDate(value) {
-
+function formatDate(
+    value
+) {
 
     if (
         !value
@@ -2596,11 +2910,12 @@ function formatDate(value) {
 
 
 // ============================================================
-// ПОЛУЧЕНИЕ ТЕКСТА ОШИБКИ
+// ОШИБКА
 // ============================================================
 
-function extractError(data) {
-
+function extractError(
+    data
+) {
 
     if (
         !data
@@ -2669,8 +2984,9 @@ function extractError(data) {
 // ЗАЩИТА HTML
 // ============================================================
 
-function escapeHtml(value) {
-
+function escapeHtml(
+    value
+) {
 
     return String(
         value ?? ''
