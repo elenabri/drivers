@@ -1,3 +1,4 @@
+
 const express = require('express');
 const axios = require('axios');
 const ExcelJS = require('exceljs');
@@ -6,7 +7,7 @@ const app = express();
 
 app.use(express.json({
     limit: '10mb'
-}));
+});
 
 
 // ============================================================
@@ -20,31 +21,48 @@ if (!MS_TOKEN) {
 }
 
 const api = axios.create({
-    baseURL: 'https://api.moysklad.ru/api/remap/1.2',
+
+    baseURL:
+        'https://api.moysklad.ru/api/remap/1.2',
 
     headers: {
-        Authorization: `Bearer ${MS_TOKEN}`,
-        Accept: 'application/json;charset=utf-8',
-        'Accept-Encoding': 'gzip'
+
+        Authorization:
+            `Bearer ${MS_TOKEN}`,
+
+        Accept:
+            'application/json;charset=utf-8',
+
+        'Accept-Encoding':
+            'gzip'
+
     },
 
     timeout: 60000
+
 });
 
 
 // ============================================================
-// ГЛАВНАЯ СТРАНИЦА
+// ГЛАВНАЯ
 // ============================================================
 
 app.get('/', (req, res) => {
+
     res.sendFile(
         __dirname + '/index.html'
     );
+
 });
 
 
 // ============================================================
 // ПОЛУЧЕНИЕ ВСЕХ ЗАПИСЕЙ
+//
+// ВАЖНО:
+// Запросы идут последовательно.
+// Не используем Promise.all для МойСклад,
+// чтобы не ловить ошибку 1073.
 // ============================================================
 
 async function getAll(entity) {
@@ -57,15 +75,16 @@ async function getAll(entity) {
 
     while (true) {
 
-        const response = await api.get(
-            `/entity/${entity}`,
-            {
-                params: {
-                    limit,
-                    offset
+        const response =
+            await api.get(
+                `/entity/${entity}`,
+                {
+                    params: {
+                        limit,
+                        offset
+                    }
                 }
-            }
-        );
+            );
 
         const batch =
             response.data?.rows || [];
@@ -76,8 +95,7 @@ async function getAll(entity) {
 
         const total =
             Number(
-                response.data?.meta?.size ||
-                0
+                response.data?.meta?.size || 0
             );
 
         console.log(
@@ -99,30 +117,34 @@ async function getAll(entity) {
 
 
 // ============================================================
-// НОРМАЛИЗАЦИЯ СТРОКИ
+// НОРМАЛИЗАЦИЯ
 // ============================================================
 
-function normalizeName(value) {
+function normalizeName(name) {
 
     return String(
-        value || ''
+        name || ''
     )
         .trim()
         .replace(/\s+/g, ' ')
         .toLowerCase();
+
 }
 
 
 // ============================================================
-// ПОЛУЧЕНИЕ АТРИБУТА
+// АТРИБУТ
 // ============================================================
 
-function getAttribute(entity, attributeName) {
+function getAttributeValue(
+    entity,
+    attributeName
+) {
 
     const attribute =
         entity?.attributes?.find(
-            item =>
-                normalizeName(item.name) ===
+            a =>
+                normalizeName(a.name) ===
                 normalizeName(attributeName)
         );
 
@@ -134,220 +156,175 @@ function getAttribute(entity, attributeName) {
         attribute.value &&
         typeof attribute.value === 'object'
     ) {
+
         return (
             attribute.value.name ||
             attribute.value.value ||
             ''
         );
+
     }
 
     return String(
         attribute.value ?? ''
     );
+
 }
 
 
 // ============================================================
-// ПОЛУЧЕНИЕ ВОДИТЕЛЯ
+// ВОДИТЕЛЬ ИЗ ОТГРУЗКИ
+//
+// Это принципиально важно.
+//
+// Берём именно:
+// demand.attributes -> "Водитель"
 // ============================================================
 
-function getDriver(demand) {
-
-    return (
-        getAttribute(
-            demand,
-            'Водитель'
-        ) ||
-        getAttribute(
-            demand,
-            'водитель'
-        ) ||
-        ''
-    );
-}
-
-
-// ============================================================
-// ПОЛУЧЕНИЕ СУММЫ
-// ============================================================
-
-function moneyFromMoySklad(value) {
-
-    const number =
-        Number(value || 0);
-
-    return number / 100;
-}
-
-
-// ============================================================
-// ПОЛУЧЕНИЕ ОТГРУЗОК
-// ============================================================
-
-async function getDemandsForPeriod(
-    demands,
-    from,
-    to
+function getDriverFromDemand(
+    demand
 ) {
 
-    const result = [];
+    const attribute =
+        demand.attributes?.find(
+            a =>
+                a.name === 'Водитель'
+        );
 
-    for (
-        const demand
-        of demands
-    ) {
+    return (
+        attribute?.value?.name ||
+        ''
+    );
 
-        if (!demand.moment) {
-            continue;
-        }
-
-        const day =
-            demand.moment.substring(
-                0,
-                10
-            );
-
-        if (
-            day < from ||
-            day > to
-        ) {
-            continue;
-        }
-
-        const driver =
-            getDriver(demand);
-
-        if (!driver) {
-            continue;
-        }
-
-        const sum =
-            moneyFromMoySklad(
-                demand.sum
-            );
-
-        if (
-            !Number.isFinite(sum) ||
-            sum <= 0
-        ) {
-            continue;
-        }
-
-        result.push({
-
-            id:
-                demand.id,
-
-            number:
-                demand.name || '',
-
-            date:
-                day,
-
-            driver:
-                driver,
-
-            counterparty:
-                demand.agent?.name || '',
-
-            sum:
-                sum
-
-        });
-    }
-
-    return result;
 }
 
 
 // ============================================================
-// ПОЛУЧЕНИЕ СТАТУСА СЧЁТА
+// СУММА MOYSKLAD
 // ============================================================
 
-function getInvoiceStatus(invoice) {
+function money(
+    value
+) {
+
+    return Number(
+        value || 0
+    ) / 100;
+
+}
+
+
+// ============================================================
+// СТАТУС СЧЁТА
+// ============================================================
+
+function getInvoiceStatus(
+    invoice
+) {
 
     return (
         invoice?.state?.name ||
         'Без статуса'
     );
+
 }
 
 
 // ============================================================
-// ПОПЫТКА ОПРЕДЕЛИТЬ КОНТРАГЕНТА
+// ПРОВЕРКА:
+// ЯВЛЯЕТСЯ ЛИ КОНТРАГЕНТ НАЕМНИКОМ
 // ============================================================
 
-function getInvoiceCounterparty(invoice) {
-
-    return (
-        invoice?.agent?.name ||
-        ''
-    );
-}
-
-
-// ============================================================
-// СОПОСТАВЛЕНИЕ ОТГРУЗКИ СО СЧЁТОМ
-// ============================================================
-
-function demandBelongsToInvoice(
-    demand,
-    invoiceCounterparty,
-    driver
+function isMercenary(
+    counterparty,
+    mercenaryNames
 ) {
 
-    const demandCounterparty =
+    return mercenaryNames.has(
         normalizeName(
-            demand.counterparty
+            counterparty
+        )
+    );
+
+}
+
+
+// ============================================================
+// ОСНОВНОЕ СОПОСТАВЛЕНИЕ
+//
+// ЭТО НЕ МЕНЯЕМ.
+//
+// Старая логика:
+// 1. Отгрузка в тот же день.
+// 2. Есть водитель.
+// 3. Водитель содержится в названии контрагента счета.
+//    ИЛИ
+// 4. Контрагент отгрузки полностью совпадает
+//    с контрагентом счета.
+// ============================================================
+
+function demandMatchesInvoice(
+    demand,
+    invoiceCounterparty
+) {
+
+    const driverAttr =
+        getDriverFromDemand(
+            demand
         );
 
-    const invoiceCp =
+    if (!driverAttr) {
+        return false;
+    }
+
+    const normalizedDriver =
+        normalizeName(
+            driverAttr
+        );
+
+    const normalizedCounterparty =
         normalizeName(
             invoiceCounterparty
         );
 
-    const normalizedDriver =
+    const demandCounterparty =
+        demand.agent?.name || '';
+
+    const normalizedDemandCounterparty =
         normalizeName(
-            driver
+            demandCounterparty
         );
 
-    // --------------------------------------------------------
-    // Основное совпадение:
-    // контрагент счета = контрагент отгрузки
-    // --------------------------------------------------------
-
-    if (
-        demandCounterparty &&
-        invoiceCp &&
-        demandCounterparty === invoiceCp
-    ) {
-        return true;
-    }
 
     // --------------------------------------------------------
-    // Дополнительная проверка через водителя
+    // ГЛАВНАЯ ПРОВЕРКА ПО ВОДИТЕЛЮ
     // --------------------------------------------------------
 
-    if (
-        normalizedDriver &&
-        (
-            demandCounterparty.includes(
-                normalizedDriver
-            ) ||
-            normalizedDriver.includes(
-                demandCounterparty
-            )
-        )
-    ) {
-        return true;
-    }
+    const driverMatches =
+        normalizedCounterparty.includes(
+            normalizedDriver
+        );
 
-    return false;
+
+    // --------------------------------------------------------
+    // ДОПОЛНИТЕЛЬНОЕ СОВПАДЕНИЕ ПО КОНТРАГЕНТУ
+    // --------------------------------------------------------
+
+    const counterpartyMatches =
+        normalizedDemandCounterparty ===
+        normalizedCounterparty;
+
+
+    return (
+        driverMatches ||
+        counterpartyMatches
+    );
+
 }
 
 
 // ============================================================
-// ОСНОВНОЙ ОТЧЁТ
+// ПОСТРОЕНИЕ ОТЧЁТА
 // ============================================================
 
 async function buildDriverReport(
@@ -360,7 +337,7 @@ async function buildDriverReport(
     );
 
     console.log(
-        `ОТЧЁТ: ${from} -> ${to}`
+        `DRIVER REPORT: ${from} -> ${to}`
     );
 
     console.log(
@@ -369,18 +346,25 @@ async function buildDriverReport(
 
 
     // ========================================================
-    // Загружаем основные сущности
+    // НЕ ДЕЛАЕМ Promise.all
+    //
+    // Чтобы не превышать лимит МойСклад.
     // ========================================================
 
-    const [
-        invoices,
-        demands,
-        counterparties
-    ] = await Promise.all([
-        getAll('invoicein'),
-        getAll('demand'),
-        getAll('counterparty')
-    ]);
+    const invoices =
+        await getAll(
+            'invoicein'
+        );
+
+    const demands =
+        await getAll(
+            'demand'
+        );
+
+    const counterparties =
+        await getAll(
+            'counterparty'
+        );
 
 
     console.log(
@@ -400,31 +384,25 @@ async function buildDriverReport(
 
 
     // ========================================================
-    // НАЕМНИКИ
+    // КОНТРАГЕНТЫ "НАЕМНИКИ"
+    //
+    // Оставляем именно старую проверку tags.
     // ========================================================
 
     const mercenaryNames =
         new Set();
+
 
     for (
         const cp
         of counterparties
     ) {
 
-        const tags =
-            Array.isArray(cp.tags)
-                ? cp.tags
-                : [];
-
-        const hasMercenaryTag =
-            tags.some(
-                tag =>
-                    normalizeName(tag) ===
-                    'наемники'
-            );
-
         if (
-            hasMercenaryTag
+            cp.tags &&
+            cp.tags.includes(
+                'наемники'
+            )
         ) {
 
             mercenaryNames.add(
@@ -434,6 +412,7 @@ async function buildDriverReport(
             );
 
         }
+
     }
 
 
@@ -444,22 +423,8 @@ async function buildDriverReport(
 
 
     // ========================================================
-    // Отгрузки выбранного периода
+    // ОТЧЁТ
     // ========================================================
-
-    const periodDemands =
-        await getDemandsForPeriod(
-            demands,
-            from,
-            to
-        );
-
-
-    console.log(
-        'Отгрузок за период:',
-        periodDemands.length
-    );
-
 
     const report = [];
 
@@ -473,39 +438,48 @@ async function buildDriverReport(
         of invoices
     ) {
 
-        if (!invoice.moment) {
+        if (
+            !invoice.moment
+        ) {
             continue;
         }
 
 
-        const day =
+        const invoiceDate =
+            new Date(
+                invoice.moment
+            );
+
+
+        // ----------------------------------------------------
+        // Проверяем период
+        // ----------------------------------------------------
+
+        const invoiceDateString =
             invoice.moment.substring(
                 0,
                 10
             );
 
 
-        // ----------------------------------------------------
-        // Период
-        // ----------------------------------------------------
-
         if (
-            day < from ||
-            day > to
+            invoiceDateString < from ||
+            invoiceDateString > to
         ) {
             continue;
         }
 
 
         // ----------------------------------------------------
-        // Получаем полный счет.
+        // Получаем полный счёт
         //
-        // ВАЖНО:
-        // expand=agent,state позволяет сразу получить
-        // контрагента и статус.
+        // Теперь одновременно получаем:
+        // agent
+        // state
         // ----------------------------------------------------
 
         let fullInvoice;
+
 
         try {
 
@@ -525,8 +499,9 @@ async function buildDriverReport(
         } catch (error) {
 
             console.error(
-                'Ошибка получения счета',
+                'Ошибка получения счета:',
                 invoice.id,
+
                 error.response?.data ||
                 error.message
             );
@@ -535,38 +510,54 @@ async function buildDriverReport(
         }
 
 
-        // ----------------------------------------------------
-        // Контрагент
-        // ----------------------------------------------------
+        // ====================================================
+        // КОНТРАГЕНТ СЧЁТА
+        // ====================================================
 
-        const counterparty =
-            getInvoiceCounterparty(
-                fullInvoice
-            );
-
-        if (!counterparty) {
+        if (
+            !fullInvoice.agent?.name
+        ) {
             continue;
         }
 
 
-        // ----------------------------------------------------
-        // Только "Наемники"
-        // ----------------------------------------------------
+        const counterparty =
+            fullInvoice.agent.name;
+
+
+        const normalizedCounterparty =
+            normalizeName(
+                counterparty
+            );
+
+
+        // ====================================================
+        // ТОЛЬКО "НАЕМНИКИ"
+        // ====================================================
 
         if (
             !mercenaryNames.has(
-                normalizeName(
-                    counterparty
-                )
+                normalizedCounterparty
             )
         ) {
             continue;
         }
 
 
-        // ----------------------------------------------------
-        // Статус
-        // ----------------------------------------------------
+        // ====================================================
+        // ДАТА
+        // ====================================================
+
+        const day =
+            fullInvoice.moment.substring(
+                0,
+                10
+            );
+
+
+        // ====================================================
+        // СТАТУС
+        // ====================================================
 
         const status =
             getInvoiceStatus(
@@ -574,38 +565,130 @@ async function buildDriverReport(
             );
 
 
-        // ----------------------------------------------------
-        // Сумма счета
-        // ----------------------------------------------------
+        // ====================================================
+        // СОБИРАЕМ ТОЛЬКО ПОДХОДЯЩИЕ ОТГРУЗКИ
+        // ====================================================
 
-        const invoiceSum =
-            moneyFromMoySklad(
-                fullInvoice.sum
-            );
+        const matchedDemands = [];
+
+
+        let shipmentSum =
+            0;
+
+
+        for (
+            const demand
+            of demands
+        ) {
+
+            if (
+                !demand.moment
+            ) {
+                continue;
+            }
+
+
+            // ------------------------------------------------
+            // ТОЛЬКО ТОТ ЖЕ ДЕНЬ
+            // ------------------------------------------------
+
+            const demandDay =
+                demand.moment.substring(
+                    0,
+                    10
+                );
+
+
+            if (
+                demandDay !== day
+            ) {
+                continue;
+            }
+
+
+            // ------------------------------------------------
+            // ВОДИТЕЛЬ
+            // ------------------------------------------------
+
+            const driverAttr =
+                getDriverFromDemand(
+                    demand
+                );
+
+
+            if (
+                !driverAttr
+            ) {
+                continue;
+            }
+
+
+            // ------------------------------------------------
+            // СОПОСТАВЛЕНИЕ
+            //
+            // ИМЕННО СТАРАЯ ЛОГИКА.
+            // ------------------------------------------------
+
+            if (
+                !demandMatchesInvoice(
+                    demand,
+                    counterparty
+                )
+            ) {
+                continue;
+            }
+
+
+            // ------------------------------------------------
+            // СУММА
+            // ------------------------------------------------
+
+            if (
+                (demand.sum || 0) <= 0
+            ) {
+                continue;
+            }
+
+
+            const sum =
+                money(
+                    demand.sum
+                );
+
+
+            shipmentSum +=
+                sum;
+
+
+            // ------------------------------------------------
+            // Сохраняем КОНКРЕТНУЮ отгрузку
+            // ------------------------------------------------
+
+            matchedDemands.push({
+
+                id:
+                    demand.id,
+
+                number:
+                    demand.name || '',
+
+                sum:
+                    sum,
+
+                driver:
+                    driverAttr,
+
+                counterparty:
+                    demand.agent?.name || ''
+
+            });
+
+        }
 
 
         // ====================================================
-        // Ищем отгрузки этого контрагента в этот день
+        // ЕСЛИ НЕТ ОТГРУЗОК — СЧЁТ НЕ ПОКАЗЫВАЕМ
         // ====================================================
-
-        const matchedDemands =
-            periodDemands.filter(
-                demand => {
-
-                    if (
-                        demand.date !== day
-                    ) {
-                        return false;
-                    }
-
-                    return demandBelongsToInvoice(
-                        demand,
-                        counterparty,
-                        demand.driver
-                    );
-                }
-            );
-
 
         if (
             matchedDemands.length === 0
@@ -615,20 +698,12 @@ async function buildDriverReport(
 
 
         // ====================================================
-        // СУММА ОТГРУЗОК
+        // СУММА СЧЁТА
         // ====================================================
 
-        const shipmentSum =
-            matchedDemands.reduce(
-                (
-                    total,
-                    demand
-                ) =>
-                    total +
-                    Number(
-                        demand.sum || 0
-                    ),
-                0
+        const invoiceSum =
+            money(
+                fullInvoice.sum
             );
 
 
@@ -644,6 +719,7 @@ async function buildDriverReport(
         // РАЗНИЦА
         //
         // 100000 - 80000 - 16000
+        //
         // = 4000
         // ====================================================
 
@@ -654,7 +730,7 @@ async function buildDriverReport(
 
 
         // ====================================================
-        // ВОДИТЕЛИ
+        // ТОЛЬКО РЕАЛЬНЫЕ ВОДИТЕЛИ ИЗ matchedDemands
         // ====================================================
 
         const drivers =
@@ -662,8 +738,8 @@ async function buildDriverReport(
                 ...new Set(
                     matchedDemands
                         .map(
-                            demand =>
-                                demand.driver
+                            d =>
+                                d.driver
                         )
                         .filter(Boolean)
                 )
@@ -671,7 +747,7 @@ async function buildDriverReport(
 
 
         // ====================================================
-        // ДОБАВЛЯЕМ СТРОКУ
+        // СТРОКА ОТЧЁТА
         // ====================================================
 
         report.push({
@@ -680,7 +756,8 @@ async function buildDriverReport(
                 fullInvoice.id,
 
             invoice:
-                fullInvoice.name || '',
+                fullInvoice.name ||
+                '',
 
             status:
                 status,
@@ -692,7 +769,9 @@ async function buildDriverReport(
                 counterparty,
 
             driver:
-                drivers.join(', '),
+                drivers.join(
+                    ', '
+                ),
 
             invoiceSum:
                 invoiceSum,
@@ -710,6 +789,7 @@ async function buildDriverReport(
                 matchedDemands
 
         });
+
     }
 
 
@@ -727,12 +807,15 @@ async function buildDriverReport(
                 return a.date.localeCompare(
                     b.date
                 );
+
             }
+
 
             return a.counterparty.localeCompare(
                 b.counterparty,
                 'ru'
             );
+
         }
     );
 
@@ -744,16 +827,20 @@ async function buildDriverReport(
 
 
     return report;
+
 }
 
 
 // ============================================================
-// API: ПОЛУЧИТЬ ОТЧЁТ
+// API: ОТЧЁТ
 // ============================================================
 
 app.get(
     '/api/driver-report',
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -779,6 +866,7 @@ app.get(
                             'Необходимо указать from и to'
 
                     });
+
             }
 
 
@@ -797,6 +885,7 @@ app.get(
                             'Дата начала не может быть позже даты окончания'
 
                     });
+
             }
 
 
@@ -807,7 +896,7 @@ app.get(
                 );
 
 
-            res.json({
+            return res.json({
 
                 success:
                     true,
@@ -836,7 +925,7 @@ app.get(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
@@ -849,27 +938,33 @@ app.get(
                         'Ошибка получения отчёта'
 
                 });
+
         }
+
     }
 );
 
 
 // ============================================================
-// API: СОЗДАТЬ EXCEL
+// API: EXCEL
 //
 // ВАЖНО:
 //
-// Здесь НЕ обращаемся к МойСклад.
+// МойСклад здесь вообще НЕ вызывается.
 //
-// Браузер присылает уже отфильтрованный список.
+// Получаем уже отфильтрованный filteredReport
+// из браузера.
 //
-// Поэтому ошибка 1073 при скачивании не должна возникать
-// из-за повторных запросов к API МойСклад.
+// Поэтому при скачивании не должно быть новых
+// запросов к МойСклад.
 // ============================================================
 
 app.post(
     '/api/driver-report.xlsx',
-    async (req, res) => {
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
@@ -893,6 +988,7 @@ app.post(
                             'Не указан период'
 
                     });
+
             }
 
 
@@ -908,6 +1004,7 @@ app.post(
                             'Не переданы строки отчёта'
 
                     });
+
             }
 
 
@@ -923,6 +1020,7 @@ app.post(
                             'Нет данных для скачивания'
 
                     });
+
             }
 
 
@@ -950,7 +1048,7 @@ app.post(
 
 
             // =================================================
-            // ЛИСТ
+            // SHEET
             // =================================================
 
             const sheet =
@@ -960,9 +1058,21 @@ app.post(
 
 
             // =================================================
-            // КОЛОНКИ
+            // EXCEL-КОЛОНКИ
             //
-            // СТАТУСА НЕТ.
+            // НЕТ:
+            // Счёта
+            // Статуса
+            // Отгрузок
+            //
+            // Есть только:
+            // Дата
+            // Контрагент
+            // Водитель
+            // Сумма счета
+            // Сумма отгрузок
+            // 20%
+            // Разница
             // =================================================
 
             sheet.columns = [
@@ -1075,17 +1185,17 @@ app.post(
                     );
 
 
-                // ---------------------------------------------
-                // Всегда пересчитываем 20%
-                // ---------------------------------------------
+                // ------------------------------------------------
+                // 20%
+                // ------------------------------------------------
 
                 const twentyPercent =
                     shipmentSum * 0.20;
 
 
-                // ---------------------------------------------
-                // Всегда пересчитываем разницу
-                // ---------------------------------------------
+                // ------------------------------------------------
+                // РАЗНИЦА
+                // ------------------------------------------------
 
                 const difference =
                     invoiceSum -
@@ -1117,6 +1227,7 @@ app.post(
                         difference
 
                 });
+
             }
 
 
@@ -1168,25 +1279,33 @@ app.post(
 
 
             // =================================================
-            // ЗАГОЛОВОК
+            // ШАПКА
             // =================================================
 
-            const headerRow =
-                sheet.getRow(1);
+            const header =
+                sheet.getRow(
+                    1
+                );
 
 
-            headerRow.font = {
-                bold: true
+            header.font = {
+
+                bold:
+                    true,
+
+                size:
+                    10
+
             };
 
 
-            headerRow.alignment = {
-
-                vertical:
-                    'middle',
+            header.alignment = {
 
                 horizontal:
                     'center',
+
+                vertical:
+                    'middle',
 
                 wrapText:
                     true
@@ -1194,42 +1313,43 @@ app.post(
             };
 
 
-            headerRow.height =
-                28;
+            header.height =
+                25;
 
 
             // =================================================
-            // ФОРМАТ ДЕНЕГ
+            // ФОРМАТ ЧИСЕЛ
             // =================================================
 
             for (
-                let rowNumber = 2;
-                rowNumber <= sheet.rowCount;
-                rowNumber++
+                let i = 2;
+                i <= sheet.rowCount;
+                i++
             ) {
 
                 sheet.getCell(
-                    `D${rowNumber}`
+                    `D${i}`
                 ).numFmt =
                     '#,##0.00';
 
 
                 sheet.getCell(
-                    `E${rowNumber}`
+                    `E${i}`
                 ).numFmt =
                     '#,##0.00';
 
 
                 sheet.getCell(
-                    `F${rowNumber}`
+                    `F${i}`
                 ).numFmt =
                     '#,##0.00';
 
 
                 sheet.getCell(
-                    `G${rowNumber}`
+                    `G${i}`
                 ).numFmt =
                     '#,##0.00';
+
             }
 
 
@@ -1238,12 +1358,15 @@ app.post(
             // =================================================
 
             totalRow.font = {
-                bold: true
+
+                bold:
+                    true
+
             };
 
 
             totalRow.height =
-                24;
+                23;
 
 
             for (
@@ -1257,11 +1380,14 @@ app.post(
                 ).border = {
 
                     top: {
+
                         style:
                             'thin'
+
                     }
 
                 };
+
             }
 
 
@@ -1270,13 +1396,13 @@ app.post(
             // =================================================
 
             for (
-                let rowNumber = 1;
-                rowNumber <= sheet.rowCount;
-                rowNumber++
+                let i = 1;
+                i <= sheet.rowCount;
+                i++
             ) {
 
                 sheet.getRow(
-                    rowNumber
+                    i
                 ).alignment = {
 
                     vertical:
@@ -1286,6 +1412,7 @@ app.post(
                         true
 
                 };
+
             }
 
 
@@ -1305,7 +1432,7 @@ app.post(
 
 
             // =================================================
-            // ЗАКРЕПЛЕНИЕ ШАПКИ
+            // ЗАКРЕПИТЬ ШАПКУ
             // =================================================
 
             sheet.views = [
@@ -1326,7 +1453,7 @@ app.post(
             // =================================================
             // ПЕЧАТЬ
             //
-            // Всё должно помещаться по ширине страницы.
+            // Всё по ширине страницы.
             // =================================================
 
             sheet.pageSetup = {
@@ -1361,10 +1488,10 @@ app.post(
                         0.15,
 
                     top:
-                        0.35,
+                        0.3,
 
                     bottom:
-                        0.35,
+                        0.3,
 
                     header:
                         0.1,
@@ -1381,7 +1508,7 @@ app.post(
 
 
             // =================================================
-            // ПОВТОРЯТЬ ШАПКУ НА КАЖДОЙ СТРАНИЦЕ
+            // ПОВТОР ШАПКИ
             // =================================================
 
             sheet.pageSetup.printTitlesRow =
@@ -1417,7 +1544,7 @@ app.post(
 
 
             // =================================================
-            // XLSX
+            // ФОРМИРУЕМ XLSX
             // =================================================
 
             const buffer =
@@ -1440,7 +1567,7 @@ app.post(
             );
 
 
-            res.send(
+            return res.send(
                 buffer
             );
 
@@ -1454,7 +1581,7 @@ app.post(
             );
 
 
-            res
+            return res
                 .status(500)
                 .json({
 
@@ -1463,7 +1590,9 @@ app.post(
                         'Ошибка создания Excel'
 
                 });
+
         }
+
     }
 );
 
