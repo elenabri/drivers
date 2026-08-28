@@ -47,7 +47,8 @@
 
             margin: 0 auto;
 
-            padding: 35px 20px 50px;
+            padding:
+                35px 20px 50px;
 
         }
 
@@ -58,6 +59,8 @@
                 0 0 25px;
 
             font-size: 30px;
+
+            font-weight: 700;
 
         }
 
@@ -74,10 +77,14 @@
 
             box-shadow:
                 0 4px 20px
-                rgba(0,0,0,.06);
+                rgba(0, 0, 0, .06);
 
         }
 
+
+        /* ====================================================
+           ФИЛЬТРЫ
+           ==================================================== */
 
         .filters {
 
@@ -103,7 +110,7 @@
         }
 
 
-        label {
+        .field label {
 
             font-size: 13px;
 
@@ -135,6 +142,19 @@
         }
 
 
+        input[type="date"]:focus {
+
+            outline: none;
+
+            border-color: #2563eb;
+
+        }
+
+
+        /* ====================================================
+           КНОПКИ
+           ==================================================== */
+
         button {
 
             height: 44px;
@@ -151,6 +171,10 @@
             font-weight: 600;
 
             cursor: pointer;
+
+            transition:
+                background .15s,
+                opacity .15s;
 
         }
 
@@ -173,11 +197,11 @@
 
         #excelBtn {
 
+            display: none;
+
             background: #16a34a;
 
             color: white;
-
-            display: none;
 
         }
 
@@ -198,6 +222,10 @@
         }
 
 
+        /* ====================================================
+           СТАТУС
+           ==================================================== */
+
         .status {
 
             margin-top: 18px;
@@ -208,6 +236,10 @@
 
         }
 
+
+        /* ====================================================
+           ИТОГ
+           ==================================================== */
 
         .summary {
 
@@ -252,6 +284,10 @@
         }
 
 
+        /* ====================================================
+           ТАБЛИЦА
+           ==================================================== */
+
         .table-wrap {
 
             overflow-x: auto;
@@ -272,7 +308,8 @@
 
         th {
 
-            padding: 13px;
+            padding:
+                13px;
 
             background: #f3f4f6;
 
@@ -280,12 +317,15 @@
 
             white-space: nowrap;
 
+            font-weight: 600;
+
         }
 
 
         td {
 
-            padding: 12px 13px;
+            padding:
+                12px 13px;
 
             border-top:
                 1px solid #edf0f4;
@@ -331,6 +371,10 @@
         }
 
 
+        /* ====================================================
+           LOADER
+           ==================================================== */
+
         .loader {
 
             display: inline-block;
@@ -343,7 +387,7 @@
 
             border:
                 2px solid
-                rgba(255,255,255,.4);
+                rgba(255, 255, 255, .4);
 
             border-top-color: white;
 
@@ -360,17 +404,26 @@
         @keyframes spin {
 
             to {
-                transform: rotate(360deg);
+
+                transform:
+                    rotate(360deg);
+
             }
 
         }
 
 
+        /* ====================================================
+           МОБИЛЬНАЯ ВЕРСИЯ
+           ==================================================== */
+
         @media (max-width: 700px) {
 
             .container {
+
                 padding:
                     20px 12px;
+
             }
 
 
@@ -411,20 +464,26 @@
 <div class="container">
 
 
+    <!-- ====================================================
+         ЗАГОЛОВОК
+         ==================================================== -->
+
     <h1>
         Отчёт по водителям
     </h1>
 
 
-    <!-- ========================================= -->
-    <!-- ФИЛЬТР -->
-    <!-- ========================================= -->
+    <!-- ====================================================
+         ФИЛЬТР
+         ==================================================== -->
 
     <div class="card">
 
 
         <div class="filters">
 
+
+            <!-- Дата начала -->
 
             <div class="field">
 
@@ -440,6 +499,8 @@
             </div>
 
 
+            <!-- Дата окончания -->
+
             <div class="field">
 
                 <label>
@@ -454,6 +515,8 @@
             </div>
 
 
+            <!-- Получить -->
+
             <button
                 id="loadBtn"
                 onclick="loadReport()"
@@ -461,6 +524,8 @@
                 Получить отчёт
             </button>
 
+
+            <!-- Excel -->
 
             <button
                 id="excelBtn"
@@ -473,11 +538,15 @@
         </div>
 
 
+        <!-- Статус -->
+
         <div
             class="status"
             id="status"
         ></div>
 
+
+        <!-- Итог -->
 
         <div
             class="summary"
@@ -505,9 +574,9 @@
     </div>
 
 
-    <!-- ========================================= -->
-    <!-- ТАБЛИЦА -->
-    <!-- ========================================= -->
+    <!-- ====================================================
+         ТАБЛИЦА
+         ==================================================== -->
 
     <div class="card">
 
@@ -596,7 +665,24 @@
 
 
 // ============================================================
-// Элементы
+// ТЕКУЩИЙ ПОЛУЧЕННЫЙ ОТЧЁТ
+//
+// ВАЖНО:
+//
+// После получения отчёта данные остаются
+// в браузере.
+//
+// При скачивании Excel они отправляются
+// на сервер.
+//
+// МойСклад повторно НЕ вызывается.
+// ============================================================
+
+let currentReport = [];
+
+
+// ============================================================
+// ЭЛЕМЕНТЫ
 // ============================================================
 
 const fromInput =
@@ -625,7 +711,7 @@ const tableBody =
 
 
 // ============================================================
-// Дата сегодня
+// СЕГОДНЯ
 // ============================================================
 
 const today =
@@ -638,7 +724,7 @@ const todayString =
 
 
 // ============================================================
-// Первый день текущего месяца
+// ПЕРВЫЙ ДЕНЬ ТЕКУЩЕГО МЕСЯЦА
 // ============================================================
 
 const firstDay =
@@ -656,7 +742,7 @@ const firstDayString =
 
 
 // ============================================================
-// Значения по умолчанию
+// ЗНАЧЕНИЯ ПО УМОЛЧАНИЮ
 // ============================================================
 
 fromInput.value =
@@ -680,6 +766,10 @@ async function loadReport() {
         toInput.value;
 
 
+    // --------------------------------------------------------
+    // Проверка
+    // --------------------------------------------------------
+
     if (!from || !to) {
 
         alert(
@@ -687,6 +777,7 @@ async function loadReport() {
         );
 
         return;
+
     }
 
 
@@ -697,7 +788,23 @@ async function loadReport() {
         );
 
         return;
+
     }
+
+
+    // --------------------------------------------------------
+    // Сбрасываем старые данные
+    // --------------------------------------------------------
+
+    currentReport = [];
+
+
+    excelBtn.style.display =
+        'none';
+
+
+    summary.style.display =
+        'none';
 
 
     // --------------------------------------------------------
@@ -706,12 +813,6 @@ async function loadReport() {
 
     loadBtn.disabled =
         true;
-
-    excelBtn.style.display =
-        'none';
-
-    summary.style.display =
-        'none';
 
 
     loadBtn.innerHTML =
@@ -730,7 +831,9 @@ async function loadReport() {
                 colspan="8"
                 class="empty"
             >
-                Загрузка...
+
+                Загрузка данных...
+
             </td>
 
         </tr>
@@ -740,6 +843,10 @@ async function loadReport() {
 
     try {
 
+
+        // ====================================================
+        // ЗАПРОС
+        // ====================================================
 
         const url =
             `/api/driver-report?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
@@ -753,43 +860,54 @@ async function loadReport() {
             await response.json();
 
 
+        // ====================================================
+        // ОШИБКА
+        // ====================================================
+
         if (!response.ok) {
 
             throw new Error(
-                data.error ||
-                'Ошибка получения отчёта'
+                extractError(data)
             );
 
         }
 
 
-        // ----------------------------------------------------
-        // Таблица
-        // ----------------------------------------------------
+        // ====================================================
+        // СОХРАНЯЕМ ОТЧЁТ
+        // ====================================================
+
+        currentReport =
+            data.rows || [];
+
+
+        // ====================================================
+        // ПОКАЗЫВАЕМ
+        // ====================================================
 
         renderReport(
-            data.rows || []
+            currentReport
         );
 
 
-        // ----------------------------------------------------
-        // Количество
-        // ----------------------------------------------------
-
         count.textContent =
-            data.count || 0;
+            currentReport.length;
 
 
         summary.style.display =
             'flex';
 
 
-        // ----------------------------------------------------
-        // Excel
-        // ----------------------------------------------------
+        // ====================================================
+        // КНОПКА EXCEL
+        // ====================================================
 
-        excelBtn.style.display =
-            'inline-block';
+        if (currentReport.length > 0) {
+
+            excelBtn.style.display =
+                'inline-block';
+
+        }
 
 
         status.textContent =
@@ -799,7 +917,12 @@ async function loadReport() {
     } catch (error) {
 
 
-        console.error(error);
+        console.error(
+            error
+        );
+
+
+        currentReport = [];
 
 
         tableBody.innerHTML = `
@@ -841,7 +964,193 @@ async function loadReport() {
 
 
 // ============================================================
-// ТАБЛИЦА
+// СКАЧАТЬ EXCEL
+//
+// ВАЖНО:
+//
+// Здесь НЕТ запроса к МойСклад.
+//
+// Мы отправляем уже полученный currentReport.
+// ============================================================
+
+async function downloadExcel() {
+
+
+    if (
+        !currentReport.length
+    ) {
+
+        alert(
+            'Сначала получите отчёт'
+        );
+
+        return;
+
+    }
+
+
+    const from =
+        fromInput.value;
+
+    const to =
+        toInput.value;
+
+
+    try {
+
+
+        // ----------------------------------------------------
+        // UI
+        // ----------------------------------------------------
+
+        excelBtn.disabled =
+            true;
+
+
+        excelBtn.textContent =
+            'Формируем Excel...';
+
+
+        // ====================================================
+        // ОТПРАВЛЯЕМ ГОТОВЫЕ ДАННЫЕ
+        // ====================================================
+
+        const response =
+            await fetch(
+                '/api/driver-report.xlsx',
+                {
+
+                    method:
+                        'POST',
+
+                    headers: {
+
+                        'Content-Type':
+                            'application/json'
+
+                    },
+
+                    body:
+                        JSON.stringify({
+
+                            from,
+
+                            to,
+
+                            rows:
+                                currentReport
+
+                        })
+
+                }
+            );
+
+
+        // ====================================================
+        // ОШИБКА
+        // ====================================================
+
+        if (!response.ok) {
+
+            let errorData;
+
+
+            try {
+
+                errorData =
+                    await response.json();
+
+            } catch {
+
+                errorData = {};
+
+            }
+
+
+            throw new Error(
+                extractError(
+                    errorData
+                )
+            );
+
+        }
+
+
+        // ====================================================
+        // ПОЛУЧАЕМ ФАЙЛ
+        // ====================================================
+
+        const blob =
+            await response.blob();
+
+
+        // ====================================================
+        // СОЗДАЁМ ССЫЛКУ
+        // ====================================================
+
+        const url =
+            window.URL.createObjectURL(
+                blob
+            );
+
+
+        const a =
+            document.createElement('a');
+
+
+        a.href =
+            url;
+
+
+        a.download =
+            `driver-report-${from}-${to}.xlsx`;
+
+
+        document.body.appendChild(a);
+
+
+        a.click();
+
+
+        a.remove();
+
+
+        window.URL.revokeObjectURL(
+            url
+        );
+
+
+    } catch (error) {
+
+
+        console.error(
+            error
+        );
+
+
+        alert(
+            'Ошибка создания Excel:\n\n' +
+            error.message
+        );
+
+
+    } finally {
+
+
+        excelBtn.disabled =
+            false;
+
+
+        excelBtn.textContent =
+            'Скачать Excel';
+
+    }
+
+}
+
+
+// ============================================================
+// ОТОБРАЗИТЬ ТАБЛИЦУ
 // ============================================================
 
 function renderReport(rows) {
@@ -857,7 +1166,10 @@ function renderReport(rows) {
                     colspan="8"
                     class="empty"
                 >
-                    За выбранный период данных нет
+
+                    За выбранный период
+                    данных нет
+
                 </td>
 
             </tr>
@@ -865,147 +1177,182 @@ function renderReport(rows) {
         `;
 
         return;
+
     }
 
 
     tableBody.innerHTML =
 
-        rows.map(row => {
+        rows
+            .map(row => {
 
 
-            const difference =
-                Number(
-                    row.difference || 0
-                );
+                const difference =
+                    Number(
+                        row.difference || 0
+                    );
 
 
-            let differenceClass =
-                '';
+                let differenceClass =
+                    '';
 
 
-            if (difference > 0) {
+                if (
+                    difference > 0
+                ) {
 
-                differenceClass =
-                    'positive';
+                    differenceClass =
+                        'positive';
 
-            } else if (difference < 0) {
-
-                differenceClass =
-                    'negative';
-
-            }
+                }
 
 
-            // --------------------------------------------
-            // Отгрузки
-            // --------------------------------------------
+                if (
+                    difference < 0
+                ) {
 
-            const demands =
-                (row.demands || [])
-                    .map(d => {
+                    differenceClass =
+                        'negative';
 
-                        return `
-
-                            <div>
-
-                                ${escapeHtml(d.number)}
-
-                                —
-
-                                ${formatMoney(d.sum)}
-
-                            </div>
-
-                        `;
-
-                    })
-                    .join('');
+                }
 
 
-            return `
+                // --------------------------------------------
+                // Отгрузки
+                // --------------------------------------------
 
-                <tr>
+                const demands =
+                    (row.demands || [])
+                        .map(
+                            demand => `
 
-                    <td>
-                        ${formatDate(row.date)}
-                    </td>
+                                <div>
 
-                    <td>
-                        ${escapeHtml(row.counterparty)}
-                    </td>
+                                    ${escapeHtml(
+                                        demand.number
+                                    )}
 
-                    <td>
-                        ${escapeHtml(row.driver)}
-                    </td>
+                                    —
 
-                    <td>
-                        ${escapeHtml(row.invoice)}
-                    </td>
+                                    ${formatMoney(
+                                        demand.sum
+                                    )}
 
-                    <td>
-                        ${formatMoney(row.invoiceSum)}
-                    </td>
+                                </div>
 
-                    <td>
-                        ${formatMoney(row.shipmentSum)}
-                    </td>
+                            `
+                        )
+                        .join('');
 
-                    <td
-                        class="${differenceClass}"
-                    >
-                        ${formatMoney(difference)}
-                    </td>
 
-                    <td>
-                        ${demands}
-                    </td>
+                // --------------------------------------------
+                // Строка
+                // --------------------------------------------
 
-                </tr>
+                return `
 
-            `;
+                    <tr>
 
-        }).join('');
+                        <td>
+
+                            ${formatDate(
+                                row.date
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${escapeHtml(
+                                row.counterparty
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${escapeHtml(
+                                row.driver
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${escapeHtml(
+                                row.invoice
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${formatMoney(
+                                row.invoiceSum
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${formatMoney(
+                                row.shipmentSum
+                            )}
+
+                        </td>
+
+
+                        <td
+                            class="${differenceClass}"
+                        >
+
+                            ${formatMoney(
+                                difference
+                            )}
+
+                        </td>
+
+
+                        <td>
+
+                            ${demands}
+
+                        </td>
+
+                    </tr>
+
+                `;
+
+            })
+            .join('');
 
 }
 
 
 // ============================================================
-// СКАЧАТЬ EXCEL
-// ============================================================
-
-function downloadExcel() {
-
-
-    const from =
-        fromInput.value;
-
-    const to =
-        toInput.value;
-
-
-    const url =
-        `/api/driver-report.xlsx?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
-
-
-    window.location.href =
-        url;
-
-}
-
-
-// ============================================================
-// ДЕНЬГИ
+// ФОРМАТ ДЕНЕГ
 // ============================================================
 
 function formatMoney(value) {
 
-    return Number(value || 0)
+    return Number(
+        value || 0
+    )
         .toLocaleString(
             'ru-RU',
             {
-                minimumFractionDigits: 2,
 
-                maximumFractionDigits: 2
+                minimumFractionDigits:
+                    2,
+
+                maximumFractionDigits:
+                    2
+
             }
         ) + ' ₽';
 
@@ -1013,10 +1360,11 @@ function formatMoney(value) {
 
 
 // ============================================================
-// ДАТА
+// ФОРМАТ ДАТЫ
 // ============================================================
 
 function formatDate(value) {
+
 
     if (!value) {
         return '';
@@ -1024,30 +1372,101 @@ function formatDate(value) {
 
 
     const parts =
-        value.split('-');
+        String(value).split('-');
 
 
-    if (parts.length !== 3) {
+    if (
+        parts.length !== 3
+    ) {
+
         return value;
+
     }
 
 
-    return `
-        ${parts[2]}.
-        ${parts[1]}.
-        ${parts[0]}
-    `.replace(/\s/g, '');
+    return (
+        parts[2] +
+        '.' +
+        parts[1] +
+        '.' +
+        parts[0]
+    );
 
 }
 
 
 // ============================================================
-// HTML ESCAPE
+// ПОЛУЧИТЬ ТЕКСТ ОШИБКИ
+// ============================================================
+
+function extractError(data) {
+
+
+    if (!data) {
+
+        return 'Неизвестная ошибка';
+
+    }
+
+
+    if (
+        typeof data.error === 'string'
+    ) {
+
+        return data.error;
+
+    }
+
+
+    if (
+        data.error?.errors?.length
+    ) {
+
+        return data.error.errors
+            .map(
+                error =>
+                    error.error ||
+                    error.message ||
+                    'Ошибка'
+            )
+            .join('\n');
+
+    }
+
+
+    if (
+        data.errors?.length
+    ) {
+
+        return data.errors
+            .map(
+                error =>
+                    error.error ||
+                    error.message ||
+                    'Ошибка'
+            )
+            .join('\n');
+
+    }
+
+
+    return (
+        data.message ||
+        'Неизвестная ошибка'
+    );
+
+}
+
+
+// ============================================================
+// ЭКРАНИРОВАНИЕ HTML
 // ============================================================
 
 function escapeHtml(value) {
 
-    return String(value ?? '')
+    return String(
+        value ?? ''
+    )
         .replace(
             /&/g,
             '&amp;'
