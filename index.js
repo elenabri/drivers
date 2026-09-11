@@ -763,7 +763,7 @@ async function buildDriverReport(
 
         const twentyPercent =
             shipmentSum *
-            0.20;
+            0.22;
 
 
         // ====================================================
