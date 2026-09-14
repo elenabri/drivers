@@ -949,7 +949,7 @@
             <div class="summary-item">
 
                 <div class="summary-title">
-                    22%
+                    20%
                 </div>
 
                 <div
@@ -1030,7 +1030,7 @@
                         </th>
 
                         <th>
-                            22%
+                            20%
                         </th>
 
                         <th>
@@ -1877,7 +1877,7 @@ function getFilteredDemands(
 // Здесь пересчитываются:
 //
 // Сумма отгрузок
-// 22%
+// 20%
 // Разница
 //
 // Сумма счета остаётся полной суммой счета.
@@ -1914,12 +1914,12 @@ function makeFilteredRow(
 
 
     // --------------------------------------------------------
-    // 22%
+    // 20%
     // --------------------------------------------------------
 
     const twentyPercent =
         shipmentSum *
-        0.22;
+        0.20;
 
 
     // --------------------------------------------------------
@@ -1927,7 +1927,7 @@ function makeFilteredRow(
     //
     // Сумма счета
     // - Сумма отгрузок
-    // - 22%
+    // - 20%
     // --------------------------------------------------------
 
     const invoiceSum =
@@ -2223,7 +2223,7 @@ function renderReport(
 
                     const twentyPercent =
                         shipmentSum *
-                        0.22;
+                        0.20;
 
 
                    const difference =
@@ -2466,7 +2466,7 @@ function updateTotals(
 
         const twentyPercent =
             shipmentSum *
-            0.22;
+            0.20;
 
 
 const difference =
@@ -2638,7 +2638,7 @@ async function downloadExcel() {
         // только выбранного водителя;
         // только его отгрузки;
         // пересчитанную сумму;
-        // пересчитанные 22%;
+        // пересчитанные 20%;
         // пересчитанную разницу.
         // ----------------------------------------------------
 
@@ -2668,7 +2668,7 @@ async function downloadExcel() {
                     twentyPercent:
                         Number(
                             row.shipmentSum || 0
-                        ) * 0.22,
+                        ) * 0.20,
 
                     difference:
                         Number(
@@ -2680,7 +2680,7 @@ async function downloadExcel() {
                         (
                             Number(
                                 row.shipmentSum || 0
-                            ) * 0.22
+                            ) * 0.20
                         )
 
                 })
@@ -3025,4 +3025,3 @@ function escapeHtml(
 </body>
 
 </html>
-
